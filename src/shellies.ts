@@ -318,7 +318,7 @@ export class Shellies extends EventEmitter<ShelliesEvents> {
    * Handles 'discover' events from device discoverers.
    */
   protected async handleDiscoveredDevice(identifiers: DeviceIdentifiers) {
-    const deviceId = identifiers.deviceId;
+    let deviceId = identifiers.deviceId;
 
     if (this.devices.has(deviceId) || this.pendingDevices.has(deviceId) || this.ignoredDevices.has(deviceId)) {
       // ignore if we've seen this device before
@@ -346,7 +346,10 @@ export class Shellies extends EventEmitter<ShelliesEvents> {
 
       // make sure the returned device ID matches
       if (info.id.toLowerCase() !== deviceId.toLowerCase()) {
-        if (info.name?.toLowerCase() !== deviceId.toLowerCase()) {
+        if (info.name?.toLowerCase() === deviceId.toLowerCase()) {
+          // Change deviceId to received
+          deviceId = info.id;
+        } else {
           throw new Error(`Unexpected device ID (returned: ${info.id}, expected: ${deviceId})`);
         }
       }

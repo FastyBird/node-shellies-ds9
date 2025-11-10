@@ -205,7 +205,7 @@ class Shellies extends eventemitter3_1.default {
      */
     async handleDiscoveredDevice(identifiers) {
         var _a, _b;
-        const deviceId = identifiers.deviceId;
+        let deviceId = identifiers.deviceId;
         if (this.devices.has(deviceId) || this.pendingDevices.has(deviceId) || this.ignoredDevices.has(deviceId)) {
             // ignore if we've seen this device before
             return;
@@ -226,7 +226,11 @@ class Shellies extends eventemitter3_1.default {
             const info = await rpcHandler.request('Shelly.GetDeviceInfo');
             // make sure the returned device ID matches
             if (info.id.toLowerCase() !== deviceId.toLowerCase()) {
-                if (((_a = info.name) === null || _a === void 0 ? void 0 : _a.toLowerCase()) !== deviceId.toLowerCase()) {
+                if (((_a = info.name) === null || _a === void 0 ? void 0 : _a.toLowerCase()) === deviceId.toLowerCase()) {
+                    // Change deviceId to received
+                    deviceId = info.id;
+                }
+                else {
                     throw new Error(`Unexpected device ID (returned: ${info.id}, expected: ${deviceId})`);
                 }
             }
