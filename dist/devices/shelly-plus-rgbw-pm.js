@@ -9,9 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ShellyPlusRGBWPm = void 0;
 const base_1 = require("./base");
 const components_1 = require("../components");
-const rgb_1 = require("../components/rgb");
-const rgbw_1 = require("../components/rgbw");
-class ShellyPlusRGBWPm extends base_1.Device {
+class ShellyPlusRGBWPm extends base_1.MultiProfileDevice {
     constructor() {
         super(...arguments);
         this.wifi = new components_1.WiFi(this);
@@ -28,8 +26,8 @@ class ShellyPlusRGBWPm extends base_1.Device {
         this.light1 = new components_1.Light(this, 1);
         this.light2 = new components_1.Light(this, 2);
         this.light3 = new components_1.Light(this, 3);
-        this.rgb0 = new rgb_1.Rgb(this, 0);
-        this.rgbw0 = new rgbw_1.Rgbw(this, 0);
+        this.rgb0 = new components_1.Rgb(this, 0);
+        this.rgbw0 = new components_1.Rgbw(this, 0);
         this.script = new components_1.Script(this);
         this.ui = new components_1.Ui(this);
     }

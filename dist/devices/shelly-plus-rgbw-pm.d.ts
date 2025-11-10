@@ -1,8 +1,6 @@
-import { Device } from './base';
-import { BluetoothLowEnergy, Cloud, Ethernet, Input, Mqtt, OutboundWebSocket, Script, Light, Ui, WiFi } from '../components';
-import { Rgb } from '../components/rgb';
-import { Rgbw } from '../components/rgbw';
-export declare class ShellyPlusRGBWPm extends Device {
+import { MultiProfileDevice } from './base';
+import { BluetoothLowEnergy, Cloud, Ethernet, Input, Mqtt, OutboundWebSocket, Rgb, Rgbw, Script, Light, Ui, WiFi } from '../components';
+export declare class ShellyPlusRGBWPm extends MultiProfileDevice {
     static readonly model: string;
     static readonly modelName: string;
     readonly wifi: WiFi;
