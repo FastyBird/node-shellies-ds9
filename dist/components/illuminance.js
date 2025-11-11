@@ -9,13 +9,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Illuminance = void 0;
 const base_1 = require("./base");
 /**
- * Handles the monitoring of a device's Illuminance sensor.
+ * The Illuminance component handles the monitoring of the device's illuminance sensors.
  */
 class Illuminance extends base_1.ComponentWithId {
     constructor(device, id = 0) {
         super('Illuminance', device, id);
         /**
-         * Illuminance in lux (null if valid value could not be obtained) (if applicable).
+         * Illuminance in lux (null if a valid value could not be obtained) (if applicable).
          */
         this.lux = null;
         /**

@@ -16,7 +16,7 @@ export interface FloodConfig {
 }
 
 /**
- * Handles the monitoring of a device's Flood sensor.
+ * The Flood component handles the monitoring of the device's flood sensors.
  */
 export class Flood extends ComponentWithId<FloodAttributes, FloodConfig> implements FloodAttributes {
   /**

@@ -13,11 +13,11 @@ export interface IlluminanceConfig {
     bright_thr: number;
 }
 /**
- * Handles the monitoring of a device's Illuminance sensor.
+ * The Illuminance component handles the monitoring of the device's illuminance sensors.
  */
 export declare class Illuminance extends ComponentWithId<IlluminanceAttributes, IlluminanceConfig> implements IlluminanceAttributes {
     /**
-     * Illuminance in lux (null if valid value could not be obtained) (if applicable).
+     * Illuminance in lux (null if a valid value could not be obtained) (if applicable).
      */
     readonly lux: number | null;
     /**
@@ -27,7 +27,7 @@ export declare class Illuminance extends ComponentWithId<IlluminanceAttributes, 
      */
     readonly illumination: string | null;
     /**
-     * Shown only if at least one error is present. May contain out_of_range, read when there is problem reading sensor.
+     * Shown only if at least one error is present. May contain out_of_range, read when there is a problem reading sensor.
      */
     readonly errors: string[] | undefined;
     constructor(device: Device, id?: number);

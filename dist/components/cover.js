@@ -9,7 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Cover = void 0;
 const base_1 = require("./base");
 /**
- * Handles the operation of moorized garage doors, window blinds, roof skylights etc.
+ * The Cover component handles the operation of motorized garage doors, window blinds, roof skylights, etc.
  */
 class Cover extends base_1.ComponentWithId {
     constructor(device, id = 0) {
@@ -52,12 +52,12 @@ class Cover extends base_1.ComponentWithId {
         };
         /**
          * Only present if Cover is calibrated.
-         * Represents current position in percent from 0 (fully closed) to 100 (fully open); null if the position is unknown.
+         * Represents the current position in percent from 0 (fully closed) to 100 (fully open); null if the position is unknown.
          */
         this.current_pos = null;
         /**
          * Only present if Cover is calibrated and is actively moving to a requested position in either open or closed directions.
-         * Represents the target position in percent from 0 (fully closed) to 100 (fully open); null if target position has been
+         * Represents the target position in percent from 0 (fully closed) to 100 (fully open); null if the target position has been
          * reached or the movement was canceled.
          */
         this.target_pos = null;
@@ -72,7 +72,16 @@ class Cover extends base_1.ComponentWithId {
         this.last_direction = null;
     }
     /**
+     * Starts the calibration procedure.
+     */
+    calibrate() {
+        return this.rpc('Calibrate', {
+            id: this.id,
+        });
+    }
+    /**
      * Opens the cover.
+     *
      * @param duration - Move in open direction for the specified time (in seconds).
      */
     open(duration) {
@@ -83,6 +92,7 @@ class Cover extends base_1.ComponentWithId {
     }
     /**
      * Closes the cover.
+     *
      * @param duration - Move in close direction for the specified time (in seconds).
      */
     close(duration) {
@@ -102,26 +112,24 @@ class Cover extends base_1.ComponentWithId {
     /**
      * Moves the cover to the given position.
      * One, but not both, of `pos` and `rel` must be specified.
+     *
      * @param pos - An absolute position (in percent).
      * @param rel - A relative position (in percent).
+     * @param slat_pos - Same semantics as pos and rel but applied to slat position.
+     * @param slat_rel - Same semantics as pos and rel but applied to slat position.
      */
-    goToPosition(pos, rel) {
+    goToPosition(pos, rel, slat_pos, slat_rel) {
         return this.rpc('GoToPosition', {
             id: this.id,
             pos,
             rel,
-        });
-    }
-    /**
-     * Starts the calibration procedure.
-     */
-    calibrate() {
-        return this.rpc('Calibrate', {
-            id: this.id,
+            slat_pos,
+            slat_rel,
         });
     }
     /**
      * This method resets associated counters.
+     *
      * @param type - Array of strings, selects which counter to reset.
      */
     resetCounters(type) {

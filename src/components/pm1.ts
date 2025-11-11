@@ -26,8 +26,17 @@ export interface Pm1Config {
   reverse: boolean;
 }
 
+export interface Pm1ResetCountersResponse {
+  aenergy: {
+    total: number;
+  };
+  ret_aenergy: {
+    total: number;
+  };
+}
+
 /**
- * Handles the monitoring of a device's temperature sensor.
+ * The PM1 component handles electrical power metering capabilities.
  */
 export class Pm1 extends ComponentWithId<Pm1Attributes, Pm1Config> implements Pm1Attributes {
   /**
@@ -91,10 +100,11 @@ export class Pm1 extends ComponentWithId<Pm1Attributes, Pm1Config> implements Pm
 
   /**
    * This method resets associated counters.
+   *
    * @param type - Array of strings, selects which counter to reset.
    */
-  resetCounters(type?: string[]): PromiseLike<null> {
-    return this.rpc<null>('ResetCounters', {
+  resetCounters(type?: string[]): PromiseLike<Pm1ResetCountersResponse> {
+    return this.rpc<Pm1ResetCountersResponse>('ResetCounters', {
       id: this.id,
       type,
     });

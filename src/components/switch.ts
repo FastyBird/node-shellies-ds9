@@ -58,12 +58,25 @@ export interface SwitchSetResponse {
   was_on: boolean;
 }
 
+export interface SwitchToggleResponse {
+  was_on: boolean;
+}
+
+export interface SwitchResetCountersResponse {
+  aenergy: {
+    total: number;
+  };
+  ret_aenergy: {
+    total: number;
+  };
+}
+
 /**
- * Represents a switch (relay) of a device.
+ * The Switch component handles a switch (relay) output terminal with optional power metering capabilities.
  */
 export class Switch extends ComponentWithId<SwitchAttributes, SwitchConfig> implements SwitchAttributes {
   /**
-   * Source of the last command, for example: init, WS_in, http, ...
+   * Source of the last command, for example, init, WS_in, http, ...
    */
   @characteristic
   readonly source: string = '';
@@ -148,16 +161,8 @@ export class Switch extends ComponentWithId<SwitchAttributes, SwitchConfig> impl
   }
 
   /**
-   * Toggles the switch.
-   */
-  toggle(): PromiseLike<SwitchSetResponse> {
-    return this.rpc<SwitchSetResponse>('Toggle', {
-      id: this.id,
-    });
-  }
-
-  /**
    * Sets the output of the switch.
+   *
    * @param on - Whether to switch on or off.
    * @param toggle_after - Flip-back timer, in seconds.
    */
@@ -170,11 +175,21 @@ export class Switch extends ComponentWithId<SwitchAttributes, SwitchConfig> impl
   }
 
   /**
+   * Toggles the switch.
+   */
+  toggle(): PromiseLike<SwitchToggleResponse> {
+    return this.rpc<SwitchToggleResponse>('Toggle', {
+      id: this.id,
+    });
+  }
+
+  /**
    * This method resets associated counters.
+   *
    * @param type - Array of strings, selects which counter to reset.
    */
-  resetCounters(type?: string[]): PromiseLike<null> {
-    return this.rpc<null>('ResetCounters', {
+  resetCounters(type?: string[]): PromiseLike<SwitchResetCountersResponse> {
+    return this.rpc<SwitchResetCountersResponse>('ResetCounters', {
       id: this.id,
       type,
     });

@@ -13,7 +13,7 @@ export interface FloodConfig {
     report_holdoff: number;
 }
 /**
- * Handles the monitoring of a device's Flood sensor.
+ * The Flood component handles the monitoring of the device's flood sensors.
  */
 export declare class Flood extends ComponentWithId<FloodAttributes, FloodConfig> implements FloodAttributes {
     /**

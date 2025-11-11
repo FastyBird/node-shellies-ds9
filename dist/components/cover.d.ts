@@ -73,8 +73,13 @@ export interface CoverConfig {
     safety_switch?: CoverSafetySwitchConfig;
     slat?: CoverSlatConfig;
 }
+export interface CoverResetCountersResponse {
+    aenergy: {
+        total: number;
+    };
+}
 /**
- * Handles the operation of moorized garage doors, window blinds, roof skylights etc.
+ * The Cover component handles the operation of motorized garage doors, window blinds, roof skylights, etc.
  */
 export declare class Cover extends ComponentWithId<CoverAttributes, CoverConfig> implements CoverAttributes {
     /**
@@ -111,12 +116,12 @@ export declare class Cover extends ComponentWithId<CoverAttributes, CoverConfig>
     readonly aenergy: CoverEnergyCounterAttributes;
     /**
      * Only present if Cover is calibrated.
-     * Represents current position in percent from 0 (fully closed) to 100 (fully open); null if the position is unknown.
+     * Represents the current position in percent from 0 (fully closed) to 100 (fully open); null if the position is unknown.
      */
     readonly current_pos: number | null;
     /**
      * Only present if Cover is calibrated and is actively moving to a requested position in either open or closed directions.
-     * Represents the target position in percent from 0 (fully closed) to 100 (fully open); null if target position has been
+     * Represents the target position in percent from 0 (fully closed) to 100 (fully open); null if the target position has been
      * reached or the movement was canceled.
      */
     readonly target_pos: number | null;
@@ -154,12 +159,18 @@ export declare class Cover extends ComponentWithId<CoverAttributes, CoverConfig>
     readonly errors: string[] | undefined;
     constructor(device: Device, id?: number);
     /**
+     * Starts the calibration procedure.
+     */
+    calibrate(): PromiseLike<null>;
+    /**
      * Opens the cover.
+     *
      * @param duration - Move in open direction for the specified time (in seconds).
      */
     open(duration?: number): PromiseLike<null>;
     /**
      * Closes the cover.
+     *
      * @param duration - Move in close direction for the specified time (in seconds).
      */
     close(duration?: number): PromiseLike<null>;
@@ -170,18 +181,18 @@ export declare class Cover extends ComponentWithId<CoverAttributes, CoverConfig>
     /**
      * Moves the cover to the given position.
      * One, but not both, of `pos` and `rel` must be specified.
+     *
      * @param pos - An absolute position (in percent).
      * @param rel - A relative position (in percent).
+     * @param slat_pos - Same semantics as pos and rel but applied to slat position.
+     * @param slat_rel - Same semantics as pos and rel but applied to slat position.
      */
-    goToPosition(pos?: number, rel?: number): PromiseLike<null>;
-    /**
-     * Starts the calibration procedure.
-     */
-    calibrate(): PromiseLike<null>;
+    goToPosition(pos?: number, rel?: number, slat_pos?: number, slat_rel?: number): PromiseLike<null>;
     /**
      * This method resets associated counters.
+     *
      * @param type - Array of strings, selects which counter to reset.
      */
-    resetCounters(type?: string[]): PromiseLike<null>;
+    resetCounters(type?: string[]): PromiseLike<CoverResetCountersResponse>;
 }
 //# sourceMappingURL=cover.d.ts.map

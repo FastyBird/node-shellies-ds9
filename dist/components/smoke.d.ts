@@ -10,7 +10,7 @@ export interface SmokeConfig {
     name: string | null;
 }
 /**
- * Handles the monitoring of a device's Smoke sensor.
+ * The Smoke component handles the monitoring of device's smoke sensors.
  */
 export declare class Smoke extends ComponentWithId<SmokeAttributes, SmokeConfig> implements SmokeAttributes {
     /**
@@ -22,5 +22,9 @@ export declare class Smoke extends ComponentWithId<SmokeAttributes, SmokeConfig>
      */
     readonly mute: boolean;
     constructor(device: Device, id?: number);
+    /**
+     * This method mutes alarm of the associated smoke sensor.
+     */
+    muteAlarm(): PromiseLike<null>;
 }
 //# sourceMappingURL=smoke.d.ts.map

@@ -67,7 +67,7 @@ export interface WiFiListApClientsResponse {
 }
 
 /**
- * Handles the WiFi services of a device.
+ * The WiFi component handles wireless connection services of a device.
  */
 export class WiFi extends Component<WiFiAttributes, WiFiConfig> implements WiFiAttributes {
   /**

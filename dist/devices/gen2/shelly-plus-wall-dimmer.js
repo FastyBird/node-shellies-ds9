@@ -19,7 +19,7 @@ class ShellyPlusWallDimmer extends base_1.Device {
         this.outboundWebSocket = new components_1.OutboundWebSocket(this);
         this.light0 = new components_1.Light(this, 0);
         this.script = new components_1.Script(this);
-        this.ui = new components_1.Ui(this);
+        this.ui = new components_1.WdUi(this);
     }
 }
 ShellyPlusWallDimmer.model = 'SNDM-0013US';

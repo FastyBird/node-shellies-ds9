@@ -9,7 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Smoke = void 0;
 const base_1 = require("./base");
 /**
- * Handles the monitoring of a device's Smoke sensor.
+ * The Smoke component handles the monitoring of device's smoke sensors.
  */
 class Smoke extends base_1.ComponentWithId {
     constructor(device, id = 0) {
@@ -22,6 +22,14 @@ class Smoke extends base_1.ComponentWithId {
          * Mute state
          */
         this.mute = false;
+    }
+    /**
+     * This method mutes alarm of the associated smoke sensor.
+     */
+    muteAlarm() {
+        return this.rpc('Mute', {
+            id: this.id,
+        });
     }
 }
 __decorate([

@@ -9,18 +9,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Voltmeter = void 0;
 const base_1 = require("./base");
 /**
- * Handles the monitoring of a device's Voltmeter sensor.
+ * The Voltmeter component handles the monitoring of the device's voltmeter sensors.
  */
 class Voltmeter extends base_1.ComponentWithId {
     constructor(device, id = 0) {
         super('Voltmeter', device, id);
         /**
-         * Voltage in volts (null if valid value could not be obtained).
+         * Voltage in volts (null if a valid value could not be obtained).
          */
         this.voltage = null;
         /**
          * voltage transformed with config.xvoltage.expr. Present only when both config.xvoltage.expr and config.xvoltage.unit
-         * are set to non-empty values. null if config.xvoltage.expr can not be evaluated.
+         * are set to non-empty values. null if config.xvoltage.expr cannot be evaluated.
          */
         this.xvoltage = null;
     }

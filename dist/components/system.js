@@ -9,7 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.System = void 0;
 const base_1 = require("./base");
 /**
- * Handles the system services of a device.
+ * The system component provides information about general device status, resource usage, availability of firmware updates, etc.
  */
 class System extends base_1.Component {
     constructor(device) {
@@ -24,19 +24,19 @@ class System extends base_1.Component {
         this.restart_required = false;
         /**
          * Current time in the format HH:MM (24-hour time format in the current timezone with leading zero).
-         * Null when time is not synced from NTP server.
+         * Null when time is not synced from the NTP server.
          */
         this.time = '';
         /**
-         * Unix timestamp (in UTC), null when time is not synced from NTP server.
+         * Unix timestamp (in UTC), null when time is not synced from the NTP server.
          */
         this.unixtime = 0;
         /**
-         * Last time the system synced time from NTP server (in UTC), null when time is not synced from NTP server.
+         * Last time the system synced time from the NTP server (in UTC), null when time is not synced from the NTP server.
          */
         this.last_sync_ts = null;
         /**
-         * Time in seconds since last reboot.
+         * Time in seconds since the last reboot.
          */
         this.uptime = 0;
         /**
@@ -68,7 +68,7 @@ class System extends base_1.Component {
          */
         this.available_updates = {};
         /**
-         * Time offset (in seconds). This is the difference between the device local time and UTC.
+         * Time offset (in seconds). This is the difference between the device's local time and UTC.
          */
         this.utc_offset = 0;
     }

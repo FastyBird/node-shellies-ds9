@@ -9,13 +9,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Light = void 0;
 const base_1 = require("./base");
 /**
- * Handles a dimmable light output with additional on/off control.
+ * The Light component handles a dimmable light output with additional on/off control.
  */
 class Light extends base_1.ComponentWithId {
     constructor(device, id = 0) {
         super('Light', device, id);
         /**
-         * Source of the last command, for example: init, WS_in, http, ...
+         * Source of the last command, for example, init, WS_in, http, ...
          */
         this.source = '';
         /**
@@ -35,7 +35,27 @@ class Light extends base_1.ComponentWithId {
         };
     }
     /**
-     * Toggles the output state.
+     * This method sets the output and brightness level of the Light component.
+     *
+     * @param on - True for light on, false otherwise.
+     * @param brightness - Brightness level.
+     * @param transition_duration - Transition time in seconds - time between change from current brightness level to desired
+     *                              brightness level in request
+     * @param toggle_after - Optional flip-back timer in seconds.
+     * @param offset - Set current brightness level with applied offset. Cannot be used together with brightness. Boundaries [-100, 100]
+     */
+    set(on, brightness, transition_duration, toggle_after, offset) {
+        return this.rpc('Set', {
+            id: this.id,
+            on,
+            brightness,
+            transition_duration,
+            toggle_after,
+            offset,
+        });
+    }
+    /**
+     * This method toggles the output state.
      */
     toggle() {
         return this.rpc('Toggle', {
@@ -43,40 +63,10 @@ class Light extends base_1.ComponentWithId {
         });
     }
     /**
-     * Sets the output and brightness level of the light.
-     * At least one of `on` and `brightness` must be specified.
-     * @param on - Whether to switch on or off.
-     * @param brightness - Brightness level.
-     * @param toggle_after - Flip-back timer, in seconds.
-     */
-    set(on, brightness, toggle_after) {
-        return this.rpc('Set', {
-            id: this.id,
-            on,
-            brightness,
-            toggle_after,
-        });
-    }
-    /**
-     * This method (if applicalbe) sets the output and brightness level of all Light components in the device.
-     * It can be used to trigger webhooks. More information about the events triggering webhooks available
-     * for this component can be found below.
-     * @param on - Whether to switch on or off.
-     * @param brightness - Brightness level.
-     * @param toggle_after - Flip-back timer, in seconds.
-     */
-    setAll(on, brightness, toggle_after) {
-        return this.rpc('SetAll', {
-            id: this.id,
-            on,
-            brightness,
-            toggle_after,
-        });
-    }
-    /**
      * This method dims up the brightness level.
+     *
      * @param fade_rate - Fade rate of the brightness level dimming. Range [1,5] where 5 is fastest, 1 is slowest.
-     *                    If not provided, value is defaulted to button_fade_rate.
+     *                    If not provided, the value is defaulted to button_fade_rate.
      */
     dimUp(fade_rate) {
         return this.rpc('DimUp', {
@@ -86,8 +76,9 @@ class Light extends base_1.ComponentWithId {
     }
     /**
      * This method dims down the brightness level.
+     *
      * @param fade_rate - Fade rate of the brightness level dimming. Range [1,5] where 5 is fastest, 1 is slowest.
-     *                    If not provided, value is defaulted to button_fade_rate.
+     *                    If not provided, the value is defaulted to button_fade_rate.
      */
     dimDown(fade_rate) {
         return this.rpc('DimDown', {
@@ -100,6 +91,34 @@ class Light extends base_1.ComponentWithId {
      */
     dimStop() {
         return this.rpc('DimStop', {
+            id: this.id,
+        });
+    }
+    /**
+     * This method (if applicable) sets the output and brightness level of all Light components in the device.
+     *
+     * @param on - True for light on, false otherwise.
+     * @param brightness - Brightness level.
+     * @param transition_duration - Transition time in seconds - time between change from current brightness level to desired
+     *                              brightness level in request
+     * @param toggle_after - Optional flip-back timer in seconds.
+     * @param offset - Set current brightness level with applied offset. Cannot be used together with brightness. Boundaries [-100, 100]
+     */
+    setAll(on, brightness, transition_duration, toggle_after, offset) {
+        return this.rpc('SetAll', {
+            id: this.id,
+            on,
+            brightness,
+            transition_duration,
+            toggle_after,
+            offset,
+        });
+    }
+    /**
+     * This method (if applicable) starts calibration of the device's outputs.
+     */
+    calibrate() {
+        return this.rpc('Calibrate', {
             id: this.id,
         });
     }

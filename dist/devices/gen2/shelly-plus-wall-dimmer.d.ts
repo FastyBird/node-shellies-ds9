@@ -1,5 +1,5 @@
 import { Device } from '../base';
-import { BluetoothLowEnergy, Cloud, Mqtt, OutboundWebSocket, Script, Light, Ui, WiFi } from '../../components';
+import { BluetoothLowEnergy, Cloud, Mqtt, OutboundWebSocket, Script, Light, WiFi, WdUi } from '../../components';
 export declare class ShellyPlusWallDimmer extends Device {
     static readonly model: string;
     static readonly modelName: string;
@@ -10,6 +10,6 @@ export declare class ShellyPlusWallDimmer extends Device {
     readonly outboundWebSocket: OutboundWebSocket;
     readonly light0: Light;
     readonly script: Script;
-    readonly ui: Ui;
+    readonly ui: WdUi;
 }
 //# sourceMappingURL=shelly-plus-wall-dimmer.d.ts.map

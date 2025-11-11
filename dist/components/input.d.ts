@@ -48,11 +48,11 @@ export interface InputConfig {
     xfreq?: InputXfreqConfig;
 }
 /**
- * Handles the input of a device.
+ * The Input component handles the external digital or analog input terminals of a device.
  */
 export declare class Input extends ComponentWithId<InputAttributes, InputConfig> implements InputAttributes {
     /**
-     * State of the input (null if the input instance is stateless, i.e. for type button).
+     * State of the input (null if the input instance is stateless, i.e., for type button).
      * (only for type switch, button)
      */
     readonly state?: boolean | null;
@@ -63,7 +63,7 @@ export declare class Input extends ComponentWithId<InputAttributes, InputConfig>
     readonly percent?: number | null;
     /**
      * Percent transformed with config.xpercent.expr. Present only when both config.xpercent.expr and config.xpercent.unit
-     * are set to non-empty values. null if config.xpercent.expr can not be evaluated.
+     * are set to non-empty values. null if config.xpercent.expr cannot be evaluated.
      * (only for type analog)
      */
     readonly xpercent?: number | null;
@@ -79,7 +79,7 @@ export declare class Input extends ComponentWithId<InputAttributes, InputConfig>
     readonly freq?: number;
     /**
      * freq transformed with config.xfreq.expr. Present only when both config.xfreq.expr and config.xfreq.unit
-     * are set to non-empty values. null if config.xfreq.expr can not be evaluated.
+     * are set to non-empty values. null if config.xfreq.expr cannot be evaluated.
      * (only for type count)
      */
     readonly xfreq?: number | null;
@@ -90,7 +90,7 @@ export declare class Input extends ComponentWithId<InputAttributes, InputConfig>
     constructor(device: Device, id?: number);
     handleEvent(event: RpcEvent): void;
     /**
-     * Emit input events on demand without actual change on the physical inputs
+     * Emit input events on demand without an actual change on the physical inputs
      * (only for type button)
      * @param event_type - Event to be emitted, one of: btn_down, btn_up, single_push, double_push, triple_push and long_push.
      */

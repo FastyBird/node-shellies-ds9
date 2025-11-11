@@ -16,7 +16,7 @@ export interface DevicePowerAttributes {
 export interface DevicePowerConfig {
 }
 /**
- * Handles the monitoring of a device's battery charge.
+ * The DevicePower component handles the monitoring of a device's battery charge and is only available on battery-operated devices.
  */
 export declare class DevicePower extends ComponentWithId<DevicePowerAttributes, DevicePowerConfig> implements DevicePowerAttributes {
     /**
@@ -24,11 +24,11 @@ export declare class DevicePower extends ComponentWithId<DevicePowerAttributes, 
      */
     readonly battery: DevicePowerBatteryStatus;
     /**
-     * Information about the external power source (only available if external power source is supported).
+     * Information about the external power source (only available if an external power source is supported).
      */
     readonly external: DevicePowerExternalSource | undefined;
     /**
-     * Whether external power source is connected.
+     * Whether an external power source is connected.
      */
     readonly errors: string[] | undefined;
     constructor(device: Device, id?: number);

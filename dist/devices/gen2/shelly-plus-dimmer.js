@@ -21,7 +21,6 @@ class ShellyPlusDimmer extends base_1.Device {
         this.input1 = new components_1.Input(this, 1);
         this.light0 = new components_1.Light(this, 0);
         this.script = new components_1.Script(this);
-        this.ui = new components_1.Ui(this);
     }
 }
 ShellyPlusDimmer.model = 'SNDM-00100WW';
@@ -53,9 +52,6 @@ __decorate([
 __decorate([
     base_1.component
 ], ShellyPlusDimmer.prototype, "script", void 0);
-__decorate([
-    base_1.component
-], ShellyPlusDimmer.prototype, "ui", void 0);
 exports.ShellyPlusDimmer = ShellyPlusDimmer;
 base_1.Device.registerClass(ShellyPlusDimmer);
 //# sourceMappingURL=shelly-plus-dimmer.js.map

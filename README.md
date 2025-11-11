@@ -33,6 +33,8 @@ For the first generation, see [node-shellies](https://github.com/alexryd/node-sh
 - [Shelly Pro 3](https://shelly-api-docs.shelly.cloud/gen2/Devices/Gen2/ShellyPro3)
 - [Shelly Pro 4 PM](https://shelly-api-docs.shelly.cloud/gen2/Devices/Gen2/ShellyPro4PM)
 - [Shelly Pro Dual Cover PM](https://shelly-api-docs.shelly.cloud/gen2/Devices/Gen2/ShellyProDualCoverPM)
+- [Shelly Pro EM](https://shelly-api-docs.shelly.cloud/gen2/Devices/Gen2/ShellyProEM)
+- [Shelly Pro 3 EM (400)](https://shelly-api-docs.shelly.cloud/gen2/Devices/Gen2/ShellyPro3EM)
 - [Shelly Pro Dimmer 1 PM](https://shelly-api-docs.shelly.cloud/gen2/Devices/Gen2/ShellyProDimmer1PM)
 - [Shelly Pro Dimmer 2 PM](https://shelly-api-docs.shelly.cloud/gen2/Devices/Gen2/ShellyProDimmer2PM)
 - [Shelly Pro Dimmer 0/1-10V PM](https://shelly-api-docs.shelly.cloud/gen2/Devices/Gen2/ShellyProDimmer0110VPM)
@@ -56,6 +58,8 @@ For the first generation, see [node-shellies](https://github.com/alexryd/node-sh
 - [Shelly Dimmer](https://shelly-api-docs.shelly.cloud/gen2/Devices/Gen3/ShellyDimmerG3)
 - [Shelly D Dimmer](https://shelly-api-docs.shelly.cloud/gen2/Devices/Gen3/ShellyDDimmerG3)
 - [Shelly H&T](https://shelly-api-docs.shelly.cloud/gen2/Devices/Gen3/ShellyHTG3)
+- [Shelly 3EM](https://shelly-api-docs.shelly.cloud/gen2/Devices/Gen3/Shelly3EMG3)
+- [Shelly EM](https://shelly-api-docs.shelly.cloud/gen2/Devices/Gen3/ShellyEMG3)
 
 ### Generation 4
 

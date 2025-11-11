@@ -9,7 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Flood = void 0;
 const base_1 = require("./base");
 /**
- * Handles the monitoring of a device's Flood sensor.
+ * The Flood component handles the monitoring of the device's flood sensors.
  */
 class Flood extends base_1.ComponentWithId {
     constructor(device, id = 0) {

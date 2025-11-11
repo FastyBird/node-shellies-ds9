@@ -4,9 +4,9 @@ import {
   Cloud,
   Mqtt,
   OutboundWebSocket,
+  PowerStripUi,
   Script,
   Switch,
-  Ui,
   WiFi,
 } from '../../components';
 
@@ -45,7 +45,7 @@ export class ShellyPowerStripGen4 extends MultiProfileDevice {
   readonly script = new Script(this);
 
   @component
-  readonly ui = new Ui(this);
+  readonly ui = new PowerStripUi(this);
 }
 
 Device.registerClass(ShellyPowerStripGen4);

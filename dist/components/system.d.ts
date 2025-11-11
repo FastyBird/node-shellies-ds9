@@ -77,7 +77,7 @@ export interface SystemConfig {
     cfg_rev: number;
 }
 /**
- * Handles the system services of a device.
+ * The system component provides information about general device status, resource usage, availability of firmware updates, etc.
  */
 export declare class System extends Component<SystemAttributes, SystemConfig> implements SystemAttributes {
     /**
@@ -90,19 +90,19 @@ export declare class System extends Component<SystemAttributes, SystemConfig> im
     readonly restart_required: boolean;
     /**
      * Current time in the format HH:MM (24-hour time format in the current timezone with leading zero).
-     * Null when time is not synced from NTP server.
+     * Null when time is not synced from the NTP server.
      */
     readonly time: string;
     /**
-     * Unix timestamp (in UTC), null when time is not synced from NTP server.
+     * Unix timestamp (in UTC), null when time is not synced from the NTP server.
      */
     readonly unixtime: number;
     /**
-     * Last time the system synced time from NTP server (in UTC), null when time is not synced from NTP server.
+     * Last time the system synced time from the NTP server (in UTC), null when time is not synced from the NTP server.
      */
     readonly last_sync_ts: number | null;
     /**
-     * Time in seconds since last reboot.
+     * Time in seconds since the last reboot.
      */
     readonly uptime: number;
     /**
@@ -134,7 +134,7 @@ export declare class System extends Component<SystemAttributes, SystemConfig> im
      */
     readonly schedule_rev: number | undefined;
     /**
-     * Webhooks revision number, present if webhooks are enabled.
+     * The amount of webhook revision, present if webhooks are enabled.
      */
     readonly webhook_rev: number | undefined;
     /**
@@ -146,7 +146,7 @@ export declare class System extends Component<SystemAttributes, SystemConfig> im
      */
     readonly btrelay_rev: number | undefined;
     /**
-     * BTHomeControl configuration revision number, present when device supports control with BLU devices.
+     * BTHomeControl configuration revision number, present when the device supports control with BLU devices.
      */
     readonly bthc_rev: number | undefined;
     /**
@@ -158,11 +158,12 @@ export declare class System extends Component<SystemAttributes, SystemConfig> im
      */
     readonly wakeup_reason: SystemWakeupReason | undefined;
     /**
-     * Period (in seconds) at which device wakes up and sends "keep-alive" packet to cloud, readonly. Count starts from last full wakeup.
+     * Period (in seconds) at which a device wakes up and sends "keep-alive" packet to cloud, readonly.
+     * Count starts from the last full wakeup.
      */
     readonly wakeup_period: number | undefined;
     /**
-     * Time offset (in seconds). This is the difference between the device local time and UTC.
+     * Time offset (in seconds). This is the difference between the device's local time and UTC.
      */
     readonly utc_offset: number;
     constructor(device: Device);

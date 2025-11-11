@@ -1,5 +1,5 @@
 import { MultiProfileDevice } from '../base';
-import { BluetoothLowEnergy, Cloud, Mqtt, OutboundWebSocket, Script, Switch, Ui, WiFi } from '../../components';
+import { BluetoothLowEnergy, Cloud, Mqtt, OutboundWebSocket, PowerStripUi, Script, Switch, WiFi } from '../../components';
 export declare class ShellyPowerStripGen4 extends MultiProfileDevice {
     static readonly model: string;
     static readonly modelName: string;
@@ -13,6 +13,6 @@ export declare class ShellyPowerStripGen4 extends MultiProfileDevice {
     readonly switch2: Switch;
     readonly switch3: Switch;
     readonly script: Script;
-    readonly ui: Ui;
+    readonly ui: PowerStripUi;
 }
 //# sourceMappingURL=shelly-power-strip.d.ts.map

@@ -4,9 +4,9 @@ import {
   Cloud,
   Mqtt,
   OutboundWebSocket,
+  PlugsUi,
   Script,
   Switch,
-  Ui,
   WiFi,
 } from '../../components';
 
@@ -36,7 +36,7 @@ export class ShellyPlugSGen3 extends Device {
   readonly script = new Script(this);
 
   @component
-  readonly ui = new Ui(this);
+  readonly ui = new PlugsUi(this);
 }
 
 Device.registerClass(ShellyPlugSGen3);

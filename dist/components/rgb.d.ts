@@ -65,11 +65,12 @@ export interface RgbConfig {
     voltage_limit?: number;
 }
 /**
- * Handles a dimmable light output with additional on/off control.
+ * The RGB component handles an output with possibility to change color and brightness of an RGB LED load. Component has additional on/off
+ * control. It has a night mode capability that can reduce brightness in a selected period of time.
  */
 export declare class Rgb extends ComponentWithId<RgbAttributes, RgbConfig> implements RgbAttributes {
     /**
-     * Source of the last command, for example: init, WS_in, http, ...
+     * Source of the last command, for example, init, WS_in, http, ...
      */
     readonly source: string;
     /**
@@ -122,28 +123,32 @@ export declare class Rgb extends ComponentWithId<RgbAttributes, RgbConfig> imple
     readonly errors: string[] | undefined;
     constructor(device: Device, id?: number);
     /**
-     * Toggles the output state.
-     */
-    toggle(): PromiseLike<null>;
-    /**
      * Sets the output and brightness level of the light.
      * At least one of `on` and `brightness` must be specified.
+     *
      * @param on - Whether to switch on or off.
      * @param brightness - Brightness level.
      * @param rgb - Red, Green, Blue [r,g,b] - each value represents level between 0..255.
+     * @param transition_duration - Transition time in seconds - time between change from current brightness level and color to desired
+     *                              brightness level and color in request.
      * @param toggle_after - Flip-back timer, in seconds.
+     * @param offset - Set current brightness level with applied offset. Cannot be used together with brightness. Boundaries [-100, 100]
      */
-    set(on?: boolean, brightness?: number, rgb?: number[], toggle_after?: number): PromiseLike<null>;
+    set(on?: boolean, brightness?: number, rgb?: number[], transition_duration?: number, toggle_after?: number, offset?: number): PromiseLike<null>;
+    /**
+     * This method toggles the output state.
+     */
+    toggle(): PromiseLike<null>;
     /**
      * This method dims up the brightness level.
      * @param fade_rate - Fade rate of the brightness level dimming. Range [1,5] where 5 is fastest, 1 is slowest.
-     *                    If not provided, value is defaulted to button_fade_rate.
+     *                    If not provided, the value is defaulted to button_fade_rate.
      */
     dimUp(fade_rate?: number): PromiseLike<null>;
     /**
      * This method dims down the brightness level.
      * @param fade_rate - Fade rate of the brightness level dimming. Range [1,5] where 5 is fastest, 1 is slowest.
-     *                    If not provided, value is defaulted to button_fade_rate.
+     *                    If not provided, the value is defaulted to button_fade_rate.
      */
     dimDown(fade_rate?: number): PromiseLike<null>;
     /**

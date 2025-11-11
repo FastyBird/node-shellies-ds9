@@ -6,7 +6,7 @@ import {
   OutboundWebSocket,
   Script,
   Switch,
-  Ui,
+  PlugsUi,
   WiFi,
 } from '../../components';
 
@@ -36,7 +36,7 @@ export class ShellyPlusPlugS extends Device {
   readonly script = new Script(this);
 
   @component
-  readonly ui = new Ui(this);
+  readonly ui = new PlugsUi(this);
 }
 
 Device.registerClass(ShellyPlusPlugS);

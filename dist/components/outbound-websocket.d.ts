@@ -9,11 +9,12 @@ export interface OutboundWebSocketConfig {
     ssl_ca: '*' | 'user_ca.pem' | 'ca.pem' | null;
 }
 /**
- * Makes it possible to configure a device to establish and maintain an outbound WebSocket connection.
+ * The Outbound Websocket component makes it possible to configure a Gen2+ Shelly device to establish and maintain an outbound
+ * websocket connection.
  */
 export declare class OutboundWebSocket extends Component<OutboundWebSocketAttributes, OutboundWebSocketConfig> implements OutboundWebSocketAttributes {
     /**
-     * True if device is connected to a websocket outbound connection or false otherwise.
+     * True if a device is connected to a websocket outbound connection or false otherwise.
      */
     readonly connected: boolean;
     constructor(device: Device);

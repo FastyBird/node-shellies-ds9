@@ -9,7 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Ethernet = void 0;
 const base_1 = require("./base");
 /**
- * Handles the Ethernet services of a device.
+ * The Ethernet component handles the ethernet interface of devices and uses Eth for RPC method namespace.
  */
 class Ethernet extends base_1.Component {
     constructor(device) {

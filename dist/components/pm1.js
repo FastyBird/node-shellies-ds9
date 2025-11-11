@@ -9,7 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Pm1 = void 0;
 const base_1 = require("./base");
 /**
- * Handles the monitoring of a device's temperature sensor.
+ * The PM1 component handles electrical power metering capabilities.
  */
 class Pm1 extends base_1.ComponentWithId {
     constructor(device, id = 0) {
@@ -17,6 +17,7 @@ class Pm1 extends base_1.ComponentWithId {
     }
     /**
      * This method resets associated counters.
+     *
      * @param type - Array of strings, selects which counter to reset.
      */
     resetCounters(type) {

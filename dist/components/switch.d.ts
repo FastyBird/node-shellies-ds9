@@ -51,12 +51,23 @@ export interface SwitchConfig {
 export interface SwitchSetResponse {
     was_on: boolean;
 }
+export interface SwitchToggleResponse {
+    was_on: boolean;
+}
+export interface SwitchResetCountersResponse {
+    aenergy: {
+        total: number;
+    };
+    ret_aenergy: {
+        total: number;
+    };
+}
 /**
- * Represents a switch (relay) of a device.
+ * The Switch component handles a switch (relay) output terminal with optional power metering capabilities.
  */
 export declare class Switch extends ComponentWithId<SwitchAttributes, SwitchConfig> implements SwitchAttributes {
     /**
-     * Source of the last command, for example: init, WS_in, http, ...
+     * Source of the last command, for example, init, WS_in, http, ...
      */
     readonly source: string;
     /**
@@ -109,19 +120,21 @@ export declare class Switch extends ComponentWithId<SwitchAttributes, SwitchConf
     readonly errors: string[] | undefined;
     constructor(device: Device, id?: number);
     /**
-     * Toggles the switch.
-     */
-    toggle(): PromiseLike<SwitchSetResponse>;
-    /**
      * Sets the output of the switch.
+     *
      * @param on - Whether to switch on or off.
      * @param toggle_after - Flip-back timer, in seconds.
      */
     set(on: boolean, toggle_after?: number): PromiseLike<SwitchSetResponse>;
     /**
+     * Toggles the switch.
+     */
+    toggle(): PromiseLike<SwitchToggleResponse>;
+    /**
      * This method resets associated counters.
+     *
      * @param type - Array of strings, selects which counter to reset.
      */
-    resetCounters(type?: string[]): PromiseLike<null>;
+    resetCounters(type?: string[]): PromiseLike<SwitchResetCountersResponse>;
 }
 //# sourceMappingURL=switch.d.ts.map

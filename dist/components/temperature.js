@@ -9,17 +9,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Temperature = void 0;
 const base_1 = require("./base");
 /**
- * Handles the monitoring of a device's temperature sensor.
+ * The Temperature component handles the monitoring of the device's temperature sensors.
  */
 class Temperature extends base_1.ComponentWithId {
     constructor(device, id = 0) {
         super('Temperature', device, id);
         /**
-         * Temperature in Celsius (null if valid value could not be obtained).
+         * Temperature in Celsius (null if a valid value could not be obtained).
          */
         this.tC = null;
         /**
-         * Temperature in Fahrenheit (null if valid value could not be obtained).
+         * Temperature in Fahrenheit (null if a valid value could not be obtained).
          */
         this.tF = null;
     }

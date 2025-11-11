@@ -20,7 +20,7 @@ export interface MqttConfig {
 }
 
 /**
- * Handles configuration and status of the device's outbound MQTT connection.
+ * The MQTT component handles configuration and status of the outbound MQTT connection.
  */
 export class Mqtt extends Component<MqttAttributes, MqttConfig> implements MqttAttributes {
   /**

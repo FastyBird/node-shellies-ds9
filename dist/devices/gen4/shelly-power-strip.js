@@ -22,7 +22,7 @@ class ShellyPowerStripGen4 extends base_1.MultiProfileDevice {
         this.switch2 = new components_1.Switch(this, 2);
         this.switch3 = new components_1.Switch(this, 3);
         this.script = new components_1.Script(this);
-        this.ui = new components_1.Ui(this);
+        this.ui = new components_1.PowerStripUi(this);
     }
 }
 ShellyPowerStripGen4.model = 'S4PL-00416EU';

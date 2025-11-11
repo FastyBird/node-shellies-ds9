@@ -9,13 +9,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Switch = void 0;
 const base_1 = require("./base");
 /**
- * Represents a switch (relay) of a device.
+ * The Switch component handles a switch (relay) output terminal with optional power metering capabilities.
  */
 class Switch extends base_1.ComponentWithId {
     constructor(device, id = 0) {
         super('Switch', device, id);
         /**
-         * Source of the last command, for example: init, WS_in, http, ...
+         * Source of the last command, for example, init, WS_in, http, ...
          */
         this.source = '';
         /**
@@ -31,15 +31,8 @@ class Switch extends base_1.ComponentWithId {
         };
     }
     /**
-     * Toggles the switch.
-     */
-    toggle() {
-        return this.rpc('Toggle', {
-            id: this.id,
-        });
-    }
-    /**
      * Sets the output of the switch.
+     *
      * @param on - Whether to switch on or off.
      * @param toggle_after - Flip-back timer, in seconds.
      */
@@ -51,7 +44,16 @@ class Switch extends base_1.ComponentWithId {
         });
     }
     /**
+     * Toggles the switch.
+     */
+    toggle() {
+        return this.rpc('Toggle', {
+            id: this.id,
+        });
+    }
+    /**
      * This method resets associated counters.
+     *
      * @param type - Array of strings, selects which counter to reset.
      */
     resetCounters(type) {

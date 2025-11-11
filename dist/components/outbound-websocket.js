@@ -9,13 +9,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.OutboundWebSocket = void 0;
 const base_1 = require("./base");
 /**
- * Makes it possible to configure a device to establish and maintain an outbound WebSocket connection.
+ * The Outbound Websocket component makes it possible to configure a Gen2+ Shelly device to establish and maintain an outbound
+ * websocket connection.
  */
 class OutboundWebSocket extends base_1.Component {
     constructor(device) {
         super('Ws', device);
         /**
-         * True if device is connected to a websocket outbound connection or false otherwise.
+         * True if a device is connected to a websocket outbound connection or false otherwise.
          */
         this.connected = false;
     }

@@ -19,6 +19,8 @@ export * from './gen2/shelly-pro-2-pm';
 export * from './gen2/shelly-pro-3';
 export * from './gen2/shelly-pro-4-pm';
 export * from './gen2/shelly-pro-dual-cover-pm';
+export * from './gen2/shelly-pro-em';
+export * from './gen2/shelly-pro-3em';
 export * from './gen2/shelly-pro-dimmer-1-pm';
 export * from './gen2/shelly-pro-dimmer-2-pm';
 export * from './gen2/shelly-pro-dimmer';
@@ -37,6 +39,9 @@ export * from './gen3/shelly-plug';
 export * from './gen3/shelly-dimmer-pm';
 export * from './gen3/shelly-dimmer';
 export * from './gen3/shelly-d-dimmer';
+export * from './gen3/shelly-ht';
+export * from './gen3/shelly-3em';
+export * from './gen3/shelly-em';
 
 export * from './gen4/shelly-1';
 export * from './gen4/shelly-1-pm';

@@ -9,11 +9,27 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.BluetoothLowEnergy = void 0;
 const base_1 = require("./base");
 /**
- * Handles the Bluetooth services of a device.
+ * The Bluetooth Low Energy component is called BLE. It handles bluetooth services of a device.
  */
 class BluetoothLowEnergy extends base_1.Component {
     constructor(device) {
         super('BLE', device);
+    }
+    /**
+     * Associate a BLUTRV device with the gateway or associate an already associated BLUTRV device with BTHome temperature
+     * and/or window sensors (BLUHT, BLUDW) which can either be existing or will be added.
+     *
+     * @param blutrv_id - If not specified discover and associate new BLUTRV device with the gateway or ID of the BluTrv component
+     *                    instance to perform sensor associations (a device doesn't need to be in pairing mode in this case)
+     * @param duration - Max discovery duration, seconds. Defaults to 30 if not provided.
+     * @param rssi_thr - Defaults to -80 if not provided.
+     */
+    startBluTrvAssociations(blutrv_id, duration, rssi_thr) {
+        return this.rpc('StartBluTrvAssociations', {
+            blutrv_id,
+            duration,
+            rssi_thr,
+        });
     }
 }
 __decorate([

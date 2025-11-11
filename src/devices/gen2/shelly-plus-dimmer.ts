@@ -7,7 +7,6 @@ import {
   OutboundWebSocket,
   Script,
   Light,
-  Ui,
   WiFi,
 } from '../../components';
 
@@ -41,9 +40,6 @@ export class ShellyPlusDimmer extends Device {
 
   @component
   readonly script = new Script(this);
-
-  @component
-  readonly ui = new Ui(this);
 }
 
 Device.registerClass(ShellyPlusDimmer);

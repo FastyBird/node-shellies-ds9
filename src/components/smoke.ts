@@ -13,7 +13,7 @@ export interface SmokeConfig {
 }
 
 /**
- * Handles the monitoring of a device's Smoke sensor.
+ * The Smoke component handles the monitoring of device's smoke sensors.
  */
 export class Smoke extends ComponentWithId<SmokeAttributes, SmokeConfig> implements SmokeAttributes {
   /**
@@ -30,5 +30,14 @@ export class Smoke extends ComponentWithId<SmokeAttributes, SmokeConfig> impleme
 
   constructor(device: Device, id = 0) {
     super('Smoke', device, id);
+  }
+
+  /**
+   * This method mutes alarm of the associated smoke sensor.
+   */
+  muteAlarm(): PromiseLike<null> {
+    return this.rpc<null>('Mute', {
+      id: this.id,
+    });
   }
 }

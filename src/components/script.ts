@@ -4,6 +4,10 @@ import { Device } from '../devices';
 export interface ScriptAttributes {
   id: number;
   running: boolean;
+  mem_used: number;
+  mem_peak: number;
+  mem_free: number;
+  cpu?: number;
   errors?: string[];
 }
 
@@ -48,7 +52,7 @@ export interface ScriptEvalResponse {
 }
 
 /**
- * Handles scripts on a device.
+ * The Script component handles management of scripts on the device.
  */
 export class Script extends ComponentBase {
   constructor(device: Device) {
@@ -57,6 +61,7 @@ export class Script extends ComponentBase {
 
   /**
    * Retrieves the status of a script.
+   *
    * @param id - The script ID.
    */
   getStatus(id: number): PromiseLike<ScriptAttributes> {
@@ -67,6 +72,7 @@ export class Script extends ComponentBase {
 
   /**
    * Retrieves the configuration of a script.
+   *
    * @param id - The script ID.
    */
   getConfig(id: number): PromiseLike<ScriptConfig> {
@@ -77,6 +83,7 @@ export class Script extends ComponentBase {
 
   /**
    * Requests changes in the configuration of a script.
+   *
    * @param id - The script ID.
    * @param config - The configuration options to set.
    */
@@ -96,6 +103,7 @@ export class Script extends ComponentBase {
 
   /**
    * Creates a new script.
+   *
    * @param name - The name of the script.
    */
   create(name: string): PromiseLike<ScriptCreateResponse> {
@@ -106,6 +114,7 @@ export class Script extends ComponentBase {
 
   /**
    * Removes a script.
+   *
    * @param id - The script ID.
    */
   delete(id: number): PromiseLike<null> {
@@ -116,6 +125,7 @@ export class Script extends ComponentBase {
 
   /**
    * Runs a script.
+   *
    * @param id - The script ID.
    */
   start(id: number): PromiseLike<ScriptStartStopResponse> {
@@ -126,6 +136,7 @@ export class Script extends ComponentBase {
 
   /**
    * Stops the execution of a script.
+   *
    * @param id - The script ID.
    */
   stop(id: number): PromiseLike<ScriptStartStopResponse> {
@@ -136,6 +147,7 @@ export class Script extends ComponentBase {
 
   /**
    * Uploads code to a script.
+   *
    * @param id - The script ID.
    * @param code - The code to upload.
    * @param append - Whether the code should be appended to the script or overwrite any existing code.
@@ -150,6 +162,7 @@ export class Script extends ComponentBase {
 
   /**
    * Downloads code from a script.
+   *
    * @param id - The script ID.
    * @param offset - The byte offset from the beginning.
    * @param len - The number of bytes to download.
@@ -164,6 +177,7 @@ export class Script extends ComponentBase {
 
   /**
    * Evaluates or executes code inside of a script.
+   *
    * @param id - The script ID.
    * @param code - The code to evaluate.
    */

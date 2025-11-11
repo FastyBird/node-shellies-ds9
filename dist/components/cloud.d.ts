@@ -8,7 +8,7 @@ export interface CloudConfig {
     server: string | null;
 }
 /**
- * Handles the Cloud services of a device.
+ * The cloud component is called Cloud. It handles cloud services of a device.
  */
 export declare class Cloud extends Component<CloudAttributes, CloudConfig> implements CloudAttributes {
     /**

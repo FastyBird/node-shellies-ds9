@@ -12,15 +12,15 @@ export interface HumidityConfig {
     offset: number;
 }
 /**
- * Handles the monitoring of a device's humidity sensor.
+ * The Humidity component handles the monitoring of the device's humidity sensors.
  */
 export declare class Humidity extends ComponentWithId<HumidityAttributes, HumidityConfig> implements HumidityAttributes {
     /**
-     * Relative humidity in % (null if valid value could not be obtained).
+     * Relative humidity in % (null if a valid value could not be obtained).
      */
     readonly rh: number | null;
     /**
-     * Shown only if at least one error is present. May contain out_of_range, read when there is problem reading sensor.
+     * Shown only if at least one error is present. May contain out_of_range, read when there is a problem reading sensor.
      */
     readonly errors: string[] | undefined;
     constructor(device: Device, id?: number);

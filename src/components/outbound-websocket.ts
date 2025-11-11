@@ -12,12 +12,13 @@ export interface OutboundWebSocketConfig {
 }
 
 /**
- * Makes it possible to configure a device to establish and maintain an outbound WebSocket connection.
+ * The Outbound Websocket component makes it possible to configure a Gen2+ Shelly device to establish and maintain an outbound
+ * websocket connection.
  */
 export class OutboundWebSocket extends Component<
   OutboundWebSocketAttributes, OutboundWebSocketConfig> implements OutboundWebSocketAttributes {
   /**
-   * True if device is connected to a websocket outbound connection or false otherwise.
+   * True if a device is connected to a websocket outbound connection or false otherwise.
    */
   @characteristic
   readonly connected: boolean = false;

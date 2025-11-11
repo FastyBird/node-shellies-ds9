@@ -9,7 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Input = void 0;
 const base_1 = require("./base");
 /**
- * Handles the input of a device.
+ * The Input component handles the external digital or analog input terminals of a device.
  */
 class Input extends base_1.ComponentWithId {
     constructor(device, id = 0) {
@@ -40,7 +40,7 @@ class Input extends base_1.ComponentWithId {
         }
     }
     /**
-     * Emit input events on demand without actual change on the physical inputs
+     * Emit input events on demand without an actual change on the physical inputs
      * (only for type button)
      * @param event_type - Event to be emitted, one of: btn_down, btn_up, single_push, double_push, triple_push and long_push.
      */

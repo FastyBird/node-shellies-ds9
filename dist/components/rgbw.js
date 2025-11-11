@@ -9,13 +9,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Rgbw = void 0;
 const base_1 = require("./base");
 /**
- * Handles a dimmable light output with additional on/off control.
+ * The RGBW component handles an output with possibility to change color and brightness of RGBW LED load. Component has additional on/off
+ * control. It has a night mode capability that can reduce brightness in a selected period of time.
  */
 class Rgbw extends base_1.ComponentWithId {
     constructor(device, id = 0) {
         super('Rgbw', device, id);
         /**
-         * Source of the last command, for example: init, WS_in, http, ...
+         * Source of the last command, for example, init, WS_in, http, ...
          */
         this.source = '';
         /**
@@ -43,6 +44,31 @@ class Rgbw extends base_1.ComponentWithId {
         };
     }
     /**
+     * Sets the output and brightness level of the light.
+     * At least one of `on` and `brightness` must be specified.
+     *
+     * @param on - Whether to switch on or off.
+     * @param brightness - Brightness level.
+     * @param rgb - Red, Green, Blue [r,g,b] - each value represents level between 0..255.
+     * @param white - White level 0..255.
+     * @param transition_duration - Transition time in seconds - time between change from current brightness level and color to desired
+     *                              brightness level and color in request.
+     * @param toggle_after - Flip-back timer, in seconds.
+     * @param offset - Set current brightness level with applied offset. Cannot be used together with brightness. Boundaries [-100, 100]
+     */
+    set(on, brightness, rgb, white, transition_duration, toggle_after, offset) {
+        return this.rpc('Set', {
+            id: this.id,
+            on,
+            brightness,
+            rgb,
+            white,
+            transition_duration,
+            toggle_after,
+            offset,
+        });
+    }
+    /**
      * Toggles the output state.
      */
     toggle() {
@@ -51,26 +77,9 @@ class Rgbw extends base_1.ComponentWithId {
         });
     }
     /**
-     * Sets the output and brightness level of the light.
-     * At least one of `on` and `brightness` must be specified.
-     * @param on - Whether to switch on or off.
-     * @param brightness - Brightness level.
-     * @param rgb - Red, Green, Blue [r,g,b] - each value represents level between 0..255.
-     * @param toggle_after - Flip-back timer, in seconds.
-     */
-    set(on, brightness, rgb, toggle_after) {
-        return this.rpc('Set', {
-            id: this.id,
-            on,
-            brightness,
-            rgb,
-            toggle_after,
-        });
-    }
-    /**
      * This method dims up the brightness level.
      * @param fade_rate - Fade rate of the brightness level dimming. Range [1,5] where 5 is fastest, 1 is slowest.
-     *                    If not provided, value is defaulted to button_fade_rate.
+     *                    If not provided, the value is defaulted to button_fade_rate.
      */
     dimUp(fade_rate) {
         return this.rpc('DimUp', {
@@ -81,7 +90,7 @@ class Rgbw extends base_1.ComponentWithId {
     /**
      * This method dims down the brightness level.
      * @param fade_rate - Fade rate of the brightness level dimming. Range [1,5] where 5 is fastest, 1 is slowest.
-     *                    If not provided, value is defaulted to button_fade_rate.
+     *                    If not provided, the value is defaulted to button_fade_rate.
      */
     dimDown(fade_rate) {
         return this.rpc('DimDown', {

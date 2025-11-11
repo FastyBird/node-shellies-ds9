@@ -78,12 +78,23 @@ export interface LightConfig {
   current_limit?: number;
 }
 
+export interface LightErrorResponse {
+  code: number;
+  message: string;
+}
+
+export interface LightResetCountersResponse {
+  aenergy: {
+    total: number;
+  };
+}
+
 /**
- * Handles a dimmable light output with additional on/off control.
+ * The Light component handles a dimmable light output with additional on/off control.
  */
 export class Light extends ComponentWithId<LightAttributes, LightConfig> implements LightAttributes {
   /**
-   * Source of the last command, for example: init, WS_in, http, ...
+   * Source of the last command, for example, init, WS_in, http, ...
    */
   @characteristic
   readonly source: string = '';
@@ -159,15 +170,15 @@ export class Light extends ComponentWithId<LightAttributes, LightConfig> impleme
 
   /**
    * Error conditions occurred, shown if at least one error is present. Depending on component capabilities may contain:
-   * overtemp, overpower, overvoltage, undervoltage, overcurrent, unsupported_load, cal_abort:interrupted, cal_abort:power_read,
-   * cal_abort:no_load, cal_abort:no_synchro, cal_abort:non_dimmable, cal_abort:overpower, cal_abort:unsupported_load
+   * overtemp, overpower, overvoltage, undervoltage, overcurrent, unsupported_load, cal_abort:interrupted, cal_abort: power_read,
+   * cal_abort: no_load, cal_abort: no_synchro, cal_abort: non_dimmable, cal_abort:overpower, cal_abort: unsupported_load
    */
   @characteristic
   readonly errors: string[] | undefined;
 
   /**
    * Communicates present conditions, shown if at least one flag is set.
-   * Depending on component capabilites may contain: no_load, uncalibrated.
+   * Depending on component capabilities may contain: no_load, uncalibrated.
    */
   @characteristic
   readonly flags?: ('no_load' | 'uncalibrated')[];
@@ -177,7 +188,28 @@ export class Light extends ComponentWithId<LightAttributes, LightConfig> impleme
   }
 
   /**
-   * Toggles the output state.
+   * This method sets the output and brightness level of the Light component.
+   *
+   * @param on - True for light on, false otherwise.
+   * @param brightness - Brightness level.
+   * @param transition_duration - Transition time in seconds - time between change from current brightness level to desired
+   *                              brightness level in request
+   * @param toggle_after - Optional flip-back timer in seconds.
+   * @param offset - Set current brightness level with applied offset. Cannot be used together with brightness. Boundaries [-100, 100]
+   */
+  set(on?: boolean, brightness?: number, transition_duration?: number, toggle_after?: number, offset?: number): PromiseLike<null> {
+    return this.rpc<null>('Set', {
+      id: this.id,
+      on,
+      brightness,
+      transition_duration,
+      toggle_after,
+      offset,
+    });
+  }
+
+  /**
+   * This method toggles the output state.
    */
   toggle(): PromiseLike<null> {
     return this.rpc<null>('Toggle', {
@@ -186,42 +218,10 @@ export class Light extends ComponentWithId<LightAttributes, LightConfig> impleme
   }
 
   /**
-   * Sets the output and brightness level of the light.
-   * At least one of `on` and `brightness` must be specified.
-   * @param on - Whether to switch on or off.
-   * @param brightness - Brightness level.
-   * @param toggle_after - Flip-back timer, in seconds.
-   */
-  set(on?: boolean, brightness?: number, toggle_after?: number): PromiseLike<null> {
-    return this.rpc<null>('Set', {
-      id: this.id,
-      on,
-      brightness,
-      toggle_after,
-    });
-  }
-
-  /**
-   * This method (if applicalbe) sets the output and brightness level of all Light components in the device.
-   * It can be used to trigger webhooks. More information about the events triggering webhooks available
-   * for this component can be found below.
-   * @param on - Whether to switch on or off.
-   * @param brightness - Brightness level.
-   * @param toggle_after - Flip-back timer, in seconds.
-   */
-  setAll(on?: boolean, brightness?: number, toggle_after?: number): PromiseLike<null> {
-    return this.rpc<null>('SetAll', {
-      id: this.id,
-      on,
-      brightness,
-      toggle_after,
-    });
-  }
-
-  /**
    * This method dims up the brightness level.
+   *
    * @param fade_rate - Fade rate of the brightness level dimming. Range [1,5] where 5 is fastest, 1 is slowest.
-   *                    If not provided, value is defaulted to button_fade_rate.
+   *                    If not provided, the value is defaulted to button_fade_rate.
    */
   dimUp(fade_rate?: number): PromiseLike<null> {
     return this.rpc<null>('DimUp', {
@@ -232,8 +232,9 @@ export class Light extends ComponentWithId<LightAttributes, LightConfig> impleme
 
   /**
    * This method dims down the brightness level.
+   *
    * @param fade_rate - Fade rate of the brightness level dimming. Range [1,5] where 5 is fastest, 1 is slowest.
-   *                    If not provided, value is defaulted to button_fade_rate.
+   *                    If not provided, the value is defaulted to button_fade_rate.
    */
   dimDown(fade_rate?: number): PromiseLike<null> {
     return this.rpc<null>('DimDown', {
@@ -252,11 +253,41 @@ export class Light extends ComponentWithId<LightAttributes, LightConfig> impleme
   }
 
   /**
+   * This method (if applicable) sets the output and brightness level of all Light components in the device.
+   *
+   * @param on - True for light on, false otherwise.
+   * @param brightness - Brightness level.
+   * @param transition_duration - Transition time in seconds - time between change from current brightness level to desired
+   *                              brightness level in request
+   * @param toggle_after - Optional flip-back timer in seconds.
+   * @param offset - Set current brightness level with applied offset. Cannot be used together with brightness. Boundaries [-100, 100]
+   */
+  setAll(on?: boolean, brightness?: number, transition_duration?: number, toggle_after?: number, offset?: number): PromiseLike<null> {
+    return this.rpc<null>('SetAll', {
+      id: this.id,
+      on,
+      brightness,
+      transition_duration,
+      toggle_after,
+      offset,
+    });
+  }
+
+  /**
+   * This method (if applicable) starts calibration of the device's outputs.
+   */
+  calibrate(): PromiseLike<LightErrorResponse | null> {
+    return this.rpc<LightErrorResponse | null>('Calibrate', {
+      id: this.id,
+    });
+  }
+
+  /**
    * This method resets associated counters.
    * @param type - Array of strings, selects which counter to reset.
    */
-  resetCounters(type?: string[]): PromiseLike<null> {
-    return this.rpc<null>('ResetCounters', {
+  resetCounters(type?: string[]): PromiseLike<LightResetCountersResponse> {
+    return this.rpc<LightResetCountersResponse>('ResetCounters', {
       id: this.id,
       type,
     });

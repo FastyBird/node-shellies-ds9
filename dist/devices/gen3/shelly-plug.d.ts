@@ -1,5 +1,5 @@
 import { Device } from '../base';
-import { BluetoothLowEnergy, Cloud, Mqtt, OutboundWebSocket, Script, Switch, Ui, WiFi } from '../../components';
+import { BluetoothLowEnergy, Cloud, Mqtt, OutboundWebSocket, PlugsUi, Script, Switch, WiFi } from '../../components';
 export declare class ShellyPlugSGen3 extends Device {
     static readonly model: string;
     static readonly modelName: string;
@@ -10,7 +10,7 @@ export declare class ShellyPlugSGen3 extends Device {
     readonly outboundWebSocket: OutboundWebSocket;
     readonly switch0: Switch;
     readonly script: Script;
-    readonly ui: Ui;
+    readonly ui: PlugsUi;
 }
 export declare class ShellyOutdoorPlugSGen3 extends ShellyPlugSGen3 {
     static readonly model: string;

@@ -9,13 +9,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Cct = void 0;
 const base_1 = require("./base");
 /**
- * Handles a dimmable light output with additional on/off control.
+ * The CCT component handles a dimmable light output with adjustable hues of white (cold/warm) and on/off control.
+ * It has a night mode capability that can reduce brightness and color temperature in a selected period of time.
  */
 class Cct extends base_1.ComponentWithId {
     constructor(device, id = 0) {
         super('Cct', device, id);
         /**
-         * Source of the last command, for example: init, WS_in, http, ...
+         * Source of the last command, for example, init, WS_in, http, ...
          */
         this.source = '';
         /**
@@ -39,7 +40,29 @@ class Cct extends base_1.ComponentWithId {
         };
     }
     /**
-     * Toggles the output state.
+     * This method sets the output, brightness and color temperature level of the CCT component.
+     *
+     * @param on - Whether to switch on or off.
+     * @param brightness - Brightness level.
+     * @param ct - Color temperature level (in Kelvin).
+     * @param transition_duration - Transition time in seconds - time between change from current brightness level to desired brightness
+     *                              level and current color temperature level to desired color temperature level in request Optional
+     * @param toggle_after - Flip-back timer, in seconds.
+     * @param offset - Set current brightness level with applied offset. Cannot be used together with brightness. Boundaries [-100, 100]
+     */
+    set(on, brightness, ct, transition_duration, toggle_after, offset) {
+        return this.rpc('Set', {
+            id: this.id,
+            on,
+            brightness,
+            ct,
+            transition_duration,
+            toggle_after,
+            offset,
+        });
+    }
+    /**
+     * This method toggles the output state.
      */
     toggle() {
         return this.rpc('Toggle', {
@@ -47,26 +70,10 @@ class Cct extends base_1.ComponentWithId {
         });
     }
     /**
-     * Sets the output and brightness level of the light.
-     * At least one of `on` and `brightness` must be specified.
-     * @param on - Whether to switch on or off.
-     * @param brightness - Brightness level.
-     * @param ct - Color temperature level (in Kelvin).
-     * @param toggle_after - Flip-back timer, in seconds.
-     */
-    set(on, brightness, ct, toggle_after) {
-        return this.rpc('Set', {
-            id: this.id,
-            on,
-            brightness,
-            Cct,
-            toggle_after,
-        });
-    }
-    /**
      * This method dims up the brightness level.
+     *
      * @param fade_rate - Fade rate of the brightness level dimming. Range [1,5] where 5 is fastest, 1 is slowest.
-     *                    If not provided, value is defaulted to button_fade_rate.
+     *                    If not provided, the value is defaulted to button_fade_rate.
      */
     dimUp(fade_rate) {
         return this.rpc('DimUp', {
@@ -76,8 +83,9 @@ class Cct extends base_1.ComponentWithId {
     }
     /**
      * This method dims down the brightness level.
+     *
      * @param fade_rate - Fade rate of the brightness level dimming. Range [1,5] where 5 is fastest, 1 is slowest.
-     *                    If not provided, value is defaulted to button_fade_rate.
+     *                    If not provided, the value is defaulted to button_fade_rate.
      */
     dimDown(fade_rate) {
         return this.rpc('DimDown', {

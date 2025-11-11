@@ -9,7 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Mqtt = void 0;
 const base_1 = require("./base");
 /**
- * Handles configuration and status of the device's outbound MQTT connection.
+ * The MQTT component handles configuration and status of the outbound MQTT connection.
  */
 class Mqtt extends base_1.Component {
     constructor(device) {

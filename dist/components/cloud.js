@@ -9,7 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Cloud = void 0;
 const base_1 = require("./base");
 /**
- * Handles the Cloud services of a device.
+ * The cloud component is called Cloud. It handles cloud services of a device.
  */
 class Cloud extends base_1.Component {
     constructor(device) {

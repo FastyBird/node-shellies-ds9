@@ -19,7 +19,7 @@ class ShellyPlugSGen3 extends base_1.Device {
         this.outboundWebSocket = new components_1.OutboundWebSocket(this);
         this.switch0 = new components_1.Switch(this, 0);
         this.script = new components_1.Script(this);
-        this.ui = new components_1.Ui(this);
+        this.ui = new components_1.PlugsUi(this);
     }
 }
 ShellyPlugSGen3.model = 'S3PL-00112EU';

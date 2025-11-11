@@ -16,11 +16,11 @@ export interface IlluminanceConfig {
 }
 
 /**
- * Handles the monitoring of a device's Illuminance sensor.
+ * The Illuminance component handles the monitoring of the device's illuminance sensors.
  */
 export class Illuminance extends ComponentWithId<IlluminanceAttributes, IlluminanceConfig> implements IlluminanceAttributes {
   /**
-   * Illuminance in lux (null if valid value could not be obtained) (if applicable).
+   * Illuminance in lux (null if a valid value could not be obtained) (if applicable).
    */
   @characteristic
   readonly lux: number | null = null;
@@ -34,7 +34,7 @@ export class Illuminance extends ComponentWithId<IlluminanceAttributes, Illumina
   readonly illumination: string | null = null;
 
   /**
-   * Shown only if at least one error is present. May contain out_of_range, read when there is problem reading sensor.
+   * Shown only if at least one error is present. May contain out_of_range, read when there is a problem reading sensor.
    */
   @characteristic
   readonly errors: string[] | undefined;

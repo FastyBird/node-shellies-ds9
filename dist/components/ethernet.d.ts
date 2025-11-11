@@ -15,7 +15,7 @@ export interface EthernetConfig {
     dhcp_end: string;
 }
 /**
- * Handles the Ethernet services of a device.
+ * The Ethernet component handles the ethernet interface of devices and uses Eth for RPC method namespace.
  */
 export declare class Ethernet extends Component<EthernetAttributes, EthernetConfig> implements EthernetAttributes {
     /**
