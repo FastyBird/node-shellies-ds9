@@ -4,8 +4,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MdnsDeviceDiscoverer = void 0;
-const multicast_dns_1 = __importDefault(require("multicast-dns"));
 const os_1 = __importDefault(require("os"));
+const multicast_dns_1 = __importDefault(require("multicast-dns"));
 const base_1 = require("./base");
 /**
  * Default multicast-dns options.
@@ -16,7 +16,7 @@ const DEFAULT_MDNS_OPTIONS = {
 /**
  * The service name that Shelly devices use to advertise themselves.
  */
-const SERVICE_NAME = '_shelly._tcp.local';
+const SERVICE_NAMES = ['_shelly._tcp.local', '_http._tcp.local'];
 /**
  * A service that can discover Shelly devices using mDNS.
  */
@@ -99,16 +99,17 @@ class MdnsDeviceDiscoverer extends base_1.DeviceDiscoverer {
      * Queries for Shelly devices.
      */
     sendQuery() {
-        return new Promise((resolve, reject) => {
-            this.mdns.query(SERVICE_NAME, 'PTR', (error) => {
-                if (error !== null) {
+        const queries = SERVICE_NAMES.map((name) => new Promise((resolve, reject) => {
+            this.mdns.query(name, 'PTR', (error) => {
+                if (error) {
                     reject(error);
                 }
                 else {
                     resolve();
                 }
             });
-        });
+        }));
+        return Promise.allSettled(queries).then(() => undefined);
     }
     /**
      * Makes this service stop searching for new Shelly devices.
@@ -134,33 +135,66 @@ class MdnsDeviceDiscoverer extends base_1.DeviceDiscoverer {
      * @param response - The response packets.
      */
     handleResponse(response) {
-        let deviceId = null;
-        // see if this response contains our requested service
-        for (const a of response.answers) {
-            if (a.type === 'PTR' && a.name === SERVICE_NAME && a.data) {
-                // this is the right service
-                // get the device ID
-                deviceId = a.data.split('.', 1)[0];
-                break;
-            }
-        }
-        // skip this response if it doesn't contain our requested service
-        if (!deviceId) {
+        var _a, _b;
+        const answers = (_a = response.answers) !== null && _a !== void 0 ? _a : [];
+        const additionals = (_b = response.additionals) !== null && _b !== void 0 ? _b : [];
+        const allRecords = answers.concat(additionals);
+        const ptrAnswers = answers.filter((a) => a.type === 'PTR' && SERVICE_NAMES.includes(a.name));
+        if (ptrAnswers.length === 0) {
             return;
         }
-        let ipAddress = null;
-        // find the device IP address among the answers
-        for (const a of response.answers.concat(response.additionals)) {
-            if (a.type === 'A') {
-                ipAddress = a.data;
+        const ipMap = new Map();
+        for (const a of allRecords) {
+            if ((a.type === 'A' || a.type === 'AAAA') && typeof a.name === 'string' && typeof a.data === 'string') {
+                if (!ipMap.has(a.name)) {
+                    ipMap.set(a.name, a.data);
+                }
             }
         }
-        if (ipAddress) {
-            this.handleDiscoveredDevice({
-                deviceId,
-                hostname: ipAddress,
-            });
+        for (const ptr of ptrAnswers) {
+            const instanceName = String(ptr.data);
+            const [fullId] = instanceName.split('.', 1);
+            const deviceId = fullId;
+            // TXT data pro konkrétní instanci
+            const txt = this.parseTxtData(allRecords, instanceName);
+            const gen = txt.get('gen');
+            if (!gen) {
+                continue;
+            }
+            const srv = allRecords.find((a) => a.type === 'SRV' && a.name === instanceName);
+            let ipAddress;
+            if (srv && typeof srv.data === 'object' && srv.data && 'target' in (srv.data)) {
+                const target = (srv.data).target;
+                ipAddress = ipMap.get(target);
+            }
+            if (!ipAddress) {
+                ipAddress = Array.from(ipMap.values())[0];
+            }
+            if (ipAddress) {
+                this.handleDiscoveredDevice({
+                    deviceId,
+                    hostname: ipAddress,
+                });
+            }
         }
+    }
+    parseTxtData(records, name) {
+        const data = new Map();
+        for (const a of records) {
+            if (a.type !== 'TXT') {
+                continue;
+            }
+            if (a.name === name && Array.isArray(a.data)) {
+                for (const entry of a.data) {
+                    const text = typeof entry === 'string' ? entry : String(entry);
+                    const [key, value] = text.split('=', 2);
+                    if (key) {
+                        data.set(key, value !== null && value !== void 0 ? value : '');
+                    }
+                }
+            }
+        }
+        return data;
     }
 }
 exports.MdnsDeviceDiscoverer = MdnsDeviceDiscoverer;
