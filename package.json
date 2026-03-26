@@ -1,6 +1,6 @@
 {
   "name": "@buddyshome/shellies-ds9",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Handles communication with the next generation of Shelly devices",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
