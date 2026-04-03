@@ -111,4 +111,12 @@ export abstract class RpcHandler extends EventEmitter<RpcHandlerEvents> {
    * @returns A promise that resolves once the connection has been closed.
    */
   abstract destroy(): PromiseLike<void>;
+
+  /**
+   * Resets the reconnect interval index back to 0.
+   * No-op for handlers that don't support reconnection.
+   */
+  resetReconnectInterval(): void {
+    // no-op by default; overridden in WebSocketRpcHandler
+  }
 }

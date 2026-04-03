@@ -47,6 +47,14 @@ class WebSocketRpcHandler extends base_1.RpcHandler {
             .timeout(this.options.requestTimeout * 1000)
             .request(method, params);
     }
+    /**
+     * Resets the reconnect interval index back to 0.
+     * Call this before terminating a socket to ensure the next reconnection
+     * attempt uses the shortest interval instead of an escalated backoff delay.
+     */
+    resetReconnectInterval() {
+        this.reconnectIntervalIndex = 0;
+    }
     destroy() {
         // clear any timeout
         this.clearTimeout();
@@ -225,7 +233,11 @@ class WebSocketRpcHandler extends base_1.RpcHandler {
         // send the ping
         this.socket.ping((error) => {
             if (error) {
-                this.emit('error', error);
+                // ping send failed — socket is likely dead, terminate immediately
+                // instead of waiting for the pong timeout
+                this.clearTimeout();
+                this.socket.terminate();
+                return;
             }
         });
         // wait for a pong
@@ -286,7 +298,15 @@ class WebSocketRpcHandler extends base_1.RpcHandler {
      */
     handleMessage(data) {
         // parse the data
-        const d = JSON.parse(data.toString());
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let d;
+        try {
+            d = JSON.parse(data.toString());
+        }
+        catch (e) {
+            this.emit('error', new Error(`Failed to parse WebSocket message: ${e.message}`));
+            return;
+        }
         if (d.id) {
             // this is a response, let the JSON RPC client handle it
             this.client.receive(d);
@@ -331,14 +351,14 @@ class WebSocketRpcHandlerFactory {
         this.defaultOptions = {
             clientId: 'node-shellies-ds9-' + Math.round(Math.random() * 1000000),
             requestTimeout: 10,
-            pingInterval: 60,
+            pingInterval: 30,
             reconnectInterval: [
                 5,
                 10,
+                15,
                 30,
                 60,
-                5 * 60,
-                10 * 60, // 10 minutes
+                60,
             ],
         };
     }

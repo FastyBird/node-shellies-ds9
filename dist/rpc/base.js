@@ -16,6 +16,13 @@ class RpcHandler extends eventemitter3_1.default {
         super();
         this.protocol = protocol;
     }
+    /**
+     * Resets the reconnect interval index back to 0.
+     * No-op for handlers that don't support reconnection.
+     */
+    resetReconnectInterval() {
+        // no-op by default; overridden in WebSocketRpcHandler
+    }
 }
 exports.RpcHandler = RpcHandler;
 //# sourceMappingURL=base.js.map

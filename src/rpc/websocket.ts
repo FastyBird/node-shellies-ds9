@@ -93,6 +93,15 @@ export class WebSocketRpcHandler extends RpcHandler {
       .request(method, params);
   }
 
+  /**
+   * Resets the reconnect interval index back to 0.
+   * Call this before terminating a socket to ensure the next reconnection
+   * attempt uses the shortest interval instead of an escalated backoff delay.
+   */
+  resetReconnectInterval(): void {
+    this.reconnectIntervalIndex = 0;
+  }
+
   destroy(): PromiseLike<void> {
     // clear any timeout
     this.clearTimeout();
@@ -295,7 +304,11 @@ export class WebSocketRpcHandler extends RpcHandler {
     // send the ping
     this.socket.ping((error?: Error) => {
       if (error) {
-        this.emit('error', error);
+        // ping send failed — socket is likely dead, terminate immediately
+        // instead of waiting for the pong timeout
+        this.clearTimeout();
+        this.socket.terminate();
+        return;
       }
     });
 
@@ -368,7 +381,15 @@ export class WebSocketRpcHandler extends RpcHandler {
    */
   protected handleMessage(data: Buffer) {
     // parse the data
-    const d = JSON.parse(data.toString());
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let d: any;
+
+    try {
+      d = JSON.parse(data.toString());
+    } catch (e) {
+      this.emit('error', new Error(`Failed to parse WebSocket message: ${(e as Error).message}`));
+      return;
+    }
 
     if (d.id) {
       // this is a response, let the JSON RPC client handle it
@@ -414,14 +435,14 @@ export class WebSocketRpcHandlerFactory {
   readonly defaultOptions: WebSocketRpcHandlerOptions = {
     clientId: 'node-shellies-ds9-' + Math.round(Math.random() * 1000000),
     requestTimeout: 10,
-    pingInterval: 60,
+    pingInterval: 30,
     reconnectInterval: [
       5,
       10,
+      15,
       30,
       60,
-      5 * 60, // 5 minutes
-      10 * 60, // 10 minutes
+      60,
     ],
   };
 

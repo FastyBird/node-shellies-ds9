@@ -70,6 +70,12 @@ export declare class WebSocketRpcHandler extends RpcHandler {
     constructor(hostname: string, options: WebSocketRpcHandlerOptions);
     get connected(): boolean;
     request<T>(method: string, params?: RpcParams): PromiseLike<T>;
+    /**
+     * Resets the reconnect interval index back to 0.
+     * Call this before terminating a socket to ensure the next reconnection
+     * attempt uses the shortest interval instead of an escalated backoff delay.
+     */
+    resetReconnectInterval(): void;
     destroy(): PromiseLike<void>;
     /**
      * Creates a new websocket and registers event handlers.
