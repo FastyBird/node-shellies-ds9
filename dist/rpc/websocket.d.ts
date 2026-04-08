@@ -56,6 +56,11 @@ export declare class WebSocketRpcHandler extends RpcHandler {
      */
     protected reconnectIntervalIndex: number;
     /**
+     * Set to true when destroy() is called to distinguish intentional
+     * shutdown from device-initiated or network-initiated close events.
+     */
+    protected destroyed: boolean;
+    /**
      * Event handlers bound to `this`.
      */
     protected readonly openHandler: () => void;
@@ -76,6 +81,12 @@ export declare class WebSocketRpcHandler extends RpcHandler {
      * attempt uses the shortest interval instead of an escalated backoff delay.
      */
     resetReconnectInterval(): void;
+    /**
+     * Triggers an immediate reconnection attempt.
+     * Resets the backoff interval, terminates the current socket
+     * (if any), and schedules a new connection attempt.
+     */
+    reconnect(): void;
     destroy(): PromiseLike<void>;
     /**
      * Creates a new websocket and registers event handlers.

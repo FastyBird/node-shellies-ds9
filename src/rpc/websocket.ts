@@ -1,3 +1,5 @@
+import { randomUUID } from 'crypto';
+
 import WebSocket from 'ws';
 
 import { JSONRPCClientWithAuthentication } from './auth';
@@ -59,6 +61,12 @@ export class WebSocketRpcHandler extends RpcHandler {
   protected reconnectIntervalIndex = 0;
 
   /**
+   * Set to true when destroy() is called to distinguish intentional
+   * shutdown from device-initiated or network-initiated close events.
+   */
+  protected destroyed = false;
+
+  /**
    * Event handlers bound to `this`.
    */
   protected readonly openHandler = this.handleOpen.bind(this);
@@ -102,7 +110,26 @@ export class WebSocketRpcHandler extends RpcHandler {
     this.reconnectIntervalIndex = 0;
   }
 
+  /**
+   * Triggers an immediate reconnection attempt.
+   * Resets the backoff interval, terminates the current socket
+   * (if any), and schedules a new connection attempt.
+   */
+  reconnect(): void {
+    this.resetReconnectInterval();
+
+    // Terminate the current socket to trigger handleClose → scheduleConnect
+    if (this.socket.readyState === WebSocket.OPEN || this.socket.readyState === WebSocket.CONNECTING) {
+      this.socket.terminate();
+    } else {
+      // Socket is already closed — schedule directly
+      this.scheduleConnect();
+    }
+  }
+
   destroy(): PromiseLike<void> {
+    this.destroyed = true;
+
     // clear any timeout
     this.clearTimeout();
 
@@ -366,9 +393,11 @@ export class WebSocketRpcHandler extends RpcHandler {
 
     let reconnectIn: number | null = null;
 
-    // unless this was an intentional disconnect...
-    if (code !== 1000) {
-      // try to reconnect
+    // Reconnect unless the handler was explicitly destroyed.
+    // Previously this checked `code !== 1000`, but Shelly devices
+    // can send code 1000 when closing a connection due to a
+    // duplicate client ID — that should still trigger reconnection.
+    if (!this.destroyed) {
       reconnectIn = this.scheduleConnect();
     }
 
@@ -433,7 +462,7 @@ export class WebSocketRpcHandlerFactory {
    * Default `WebSocketRpcHandler` options.
    */
   readonly defaultOptions: WebSocketRpcHandlerOptions = {
-    clientId: 'node-shellies-ds9-' + Math.round(Math.random() * 1000000),
+    clientId: 'node-shellies-ds9-' + randomUUID(),
     requestTimeout: 10,
     pingInterval: 30,
     reconnectInterval: [

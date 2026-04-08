@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WebSocketRpcHandlerFactory = exports.WebSocketRpcHandler = void 0;
+const crypto_1 = require("crypto");
 const ws_1 = __importDefault(require("ws"));
 const auth_1 = require("./auth");
 const base_1 = require("./base");
@@ -27,6 +28,11 @@ class WebSocketRpcHandler extends base_1.RpcHandler {
          * Indicates which value in the `reconnectInterval` option is currently being used.
          */
         this.reconnectIntervalIndex = 0;
+        /**
+         * Set to true when destroy() is called to distinguish intentional
+         * shutdown from device-initiated or network-initiated close events.
+         */
+        this.destroyed = false;
         /**
          * Event handlers bound to `this`.
          */
@@ -55,7 +61,24 @@ class WebSocketRpcHandler extends base_1.RpcHandler {
     resetReconnectInterval() {
         this.reconnectIntervalIndex = 0;
     }
+    /**
+     * Triggers an immediate reconnection attempt.
+     * Resets the backoff interval, terminates the current socket
+     * (if any), and schedules a new connection attempt.
+     */
+    reconnect() {
+        this.resetReconnectInterval();
+        // Terminate the current socket to trigger handleClose → scheduleConnect
+        if (this.socket.readyState === ws_1.default.OPEN || this.socket.readyState === ws_1.default.CONNECTING) {
+            this.socket.terminate();
+        }
+        else {
+            // Socket is already closed — schedule directly
+            this.scheduleConnect();
+        }
+    }
     destroy() {
+        this.destroyed = true;
         // clear any timeout
         this.clearTimeout();
         // reject all pending requests
@@ -285,9 +308,11 @@ class WebSocketRpcHandler extends base_1.RpcHandler {
             .off('pong', this.pongHandler)
             .off('error', this.errorHandler);
         let reconnectIn = null;
-        // unless this was an intentional disconnect...
-        if (code !== 1000) {
-            // try to reconnect
+        // Reconnect unless the handler was explicitly destroyed.
+        // Previously this checked `code !== 1000`, but Shelly devices
+        // can send code 1000 when closing a connection due to a
+        // duplicate client ID — that should still trigger reconnection.
+        if (!this.destroyed) {
             reconnectIn = this.scheduleConnect();
         }
         this.emit('disconnect', code, reason.toString(), reconnectIn);
@@ -349,7 +374,7 @@ class WebSocketRpcHandlerFactory {
          * Default `WebSocketRpcHandler` options.
          */
         this.defaultOptions = {
-            clientId: 'node-shellies-ds9-' + Math.round(Math.random() * 1000000),
+            clientId: 'node-shellies-ds9-' + (0, crypto_1.randomUUID)(),
             requestTimeout: 10,
             pingInterval: 30,
             reconnectInterval: [
