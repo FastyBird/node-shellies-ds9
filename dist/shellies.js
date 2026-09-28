@@ -204,7 +204,7 @@ class Shellies extends eventemitter3_1.default {
      * Handles 'discover' events from device discoverers.
      */
     async handleDiscoveredDevice(identifiers) {
-        var _a, _b;
+        var _a, _b, _c;
         let deviceId = identifiers.deviceId;
         if (this.devices.has(deviceId) || this.pendingDevices.has(deviceId) || this.ignoredDevices.has(deviceId)) {
             // ignore if we've seen this device before
@@ -219,9 +219,10 @@ class Shellies extends eventemitter3_1.default {
             return;
         }
         this.pendingDevices.add(deviceId);
+        let rpcHandler;
         try {
             // create an RPC handler
-            const rpcHandler = this.createRpcHandler(identifiers, opts);
+            rpcHandler = this.createRpcHandler(identifiers, opts);
             // load info about this device
             const info = await rpcHandler.request('Shelly.GetDeviceInfo');
             // make sure the returned device ID matches
@@ -252,14 +253,12 @@ class Shellies extends eventemitter3_1.default {
                 // load its config
                 await device.loadConfig();
             }
-            this.pendingDevices.delete(deviceId);
             if (this.has(deviceId)) {
                 this.delete(deviceId);
             }
             this.add(device);
         }
         catch (e) {
-            this.pendingDevices.delete(deviceId);
             // create a custom Error
             const message = e instanceof Error ? e.message : String(e);
             const error = new Error(`Failed to add discovered device (id: ${deviceId}): ${message}`);
@@ -271,6 +270,24 @@ class Shellies extends eventemitter3_1.default {
             }
             // emit the error
             this.emit('error', deviceId, error);
+        }
+        finally {
+            try {
+                // Discovery owns this handler until a device adopts it. Failed or unsupported
+                // discoveries must stop reconnecting and release their socket before retrying.
+                // Check actual ownership because an `add` listener can throw after adoption.
+                if (rpcHandler && ((_c = this.devices.get(deviceId)) === null || _c === void 0 ? void 0 : _c.rpcHandler) !== rpcHandler) {
+                    await rpcHandler.destroy();
+                }
+            }
+            catch (e) {
+                const message = e instanceof Error ? e.message : String(e);
+                this.emit('error', deviceId, new Error(`Failed to close discovery connection (id: ${deviceId}): ${message}`));
+            }
+            finally {
+                // GetDeviceInfo may have resolved a discovered name to a canonical ID.
+                this.pendingDevices.delete(identifiers.deviceId);
+            }
         }
     }
 }
