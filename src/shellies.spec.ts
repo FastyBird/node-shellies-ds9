@@ -230,6 +230,8 @@ describe('Shellies', () => {
       expect(shellies.delete('abc124')).toBe(true);
       expect(shellies.size).toBe(0);
       expect(shellies.has(device2)).toBe(false);
+      expect(device1.rpcHandler.destroy).toHaveBeenCalledTimes(1);
+      expect(device2.rpcHandler.destroy).toHaveBeenCalledTimes(1);
     });
 
     test('emits a `remove` event', () => {
@@ -258,6 +260,35 @@ describe('Shellies', () => {
 
       expect(listener).not.toHaveBeenCalledTimes(1);
     });
+  });
+
+  test('reports a failed removal cleanup and still removes the device', async () => {
+    const device = new TestDevice('failed-close');
+    (device.rpcHandler.destroy as jest.Mock).mockRejectedValue(new Error('close failed'));
+    const errors = jest.fn();
+    shellies.on('error', errors);
+    shellies.add(device);
+
+    expect(shellies.delete(device)).toBe(true);
+    await Promise.resolve();
+
+    expect(shellies.has(device)).toBe(false);
+    expect(errors).toHaveBeenCalledWith(device.id, expect.objectContaining({ message: expect.stringContaining('close failed') }));
+  });
+
+  test('clear closes every handler even if a remove listener throws', () => {
+    const first = new TestDevice('first');
+    const second = new TestDevice('second');
+    shellies.add(first).add(second);
+    shellies.on('remove', () => {
+      throw new Error('listener failed');
+    });
+
+    expect(() => shellies.clear()).toThrow('listener failed');
+
+    expect(shellies.size).toBe(0);
+    expect(first.rpcHandler.destroy).toHaveBeenCalledTimes(1);
+    expect(second.rpcHandler.destroy).toHaveBeenCalledTimes(1);
   });
 
   describe('.clear()', () => {

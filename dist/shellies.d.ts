@@ -93,6 +93,8 @@ export declare class Shellies extends EventEmitter<ShelliesEvents> {
      * Holds IDs of devices that have been discovered but not yet added.
      */
     protected readonly pendingDevices: Set<string>;
+    /** Invalidates discoveries that were still loading when clear() was called. */
+    private discoveryGeneration;
     /**
      * Holds IDs of devices that have been discovered but are excluded or whose
      * model designation isn't recognized.
@@ -147,15 +149,17 @@ export declare class Shellies extends EventEmitter<ShelliesEvents> {
      */
     [Symbol.iterator](): IterableIterator<Device>;
     /**
-     * Removes a device.
+     * Removes a device and starts closing its RPC connection.
      * @param deviceOrId - The device or ID of the device to remove.
      * @returns `true` if a device has been removed; `false` otherwise.
      */
     delete(deviceOrId: Device | DeviceId): boolean;
     /**
-     * Removes all devices.
+     * Removes all devices and starts closing their RPC connections.
+     * Discoveries already in flight are discarded when their current load finishes.
      */
     clear(): void;
+    private closeDeviceConnection;
     /**
      * Registers a device discoverer, making discovered devices be added to this library.
      * @param discoverer - The discoverer to register.

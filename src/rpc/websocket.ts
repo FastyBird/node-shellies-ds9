@@ -116,6 +116,10 @@ export class WebSocketRpcHandler extends RpcHandler {
    * (if any), and schedules a new connection attempt.
    */
   reconnect(): void {
+    if (this.destroyed) {
+      return;
+    }
+
     this.resetReconnectInterval();
 
     // Terminate the current socket to trigger handleClose → scheduleConnect
@@ -158,11 +162,19 @@ export class WebSocketRpcHandler extends RpcHandler {
    * Creates a new socket if the current is closed.
    */
   protected async connect() {
+    if (this.destroyed) {
+      throw new Error('RPC handler has been destroyed');
+    }
+
     switch (this.socket.readyState) {
       case WebSocket.CLOSED:
       case WebSocket.CLOSING:
         // the current socket is closed, disconnect and create a new one
         await this.disconnect();
+        // destroy() may have run while the previous socket was closing.
+        if (this.destroyed) {
+          throw new Error('RPC handler has been destroyed');
+        }
         this.socket = this.createSocket(this.socket.url);
         // fall through
 
@@ -207,6 +219,10 @@ export class WebSocketRpcHandler extends RpcHandler {
    * @return The time, in milliseconds, that the next connection attempt will be made in; or `null` if none has been scheduled.
    */
   protected scheduleConnect(): number | null {
+    if (this.destroyed) {
+      return null;
+    }
+
     const reconnectInterval = this.options.reconnectInterval;
     const intervals: number[] = !Array.isArray(reconnectInterval) ? [reconnectInterval] : reconnectInterval;
 
@@ -288,6 +304,9 @@ export class WebSocketRpcHandler extends RpcHandler {
   protected async handleRequest(payload: RpcParams) {
     // make sure we're connected
     await this.connect();
+    if (this.destroyed) {
+      throw new Error('RPC handler has been destroyed');
+    }
     // then send the request
     await this.sendRequest(payload);
   }
@@ -321,7 +340,7 @@ export class WebSocketRpcHandler extends RpcHandler {
    */
   protected sendPing() {
     // abort if pings are disabled or the socket isn't open
-    if (this.options.pingInterval <= 0 || this.socket.readyState !== WebSocket.OPEN) {
+    if (this.destroyed || this.options.pingInterval <= 0 || this.socket.readyState !== WebSocket.OPEN) {
       return;
     }
 
@@ -360,6 +379,11 @@ export class WebSocketRpcHandler extends RpcHandler {
    * Handles 'open' events from the socket.
    */
   protected handleOpen() {
+    if (this.destroyed) {
+      this.socket.close(1000, 'User request');
+      return;
+    }
+
     // reset the reconnect index
     this.reconnectIntervalIndex = 0;
 
@@ -369,7 +393,7 @@ export class WebSocketRpcHandler extends RpcHandler {
     this.clearTimeout();
 
     // start sending pings
-    if (this.options.pingInterval > 0) {
+    if (!this.destroyed && this.options.pingInterval > 0) {
       this.timeout = setTimeout(() => this.sendPing(), this.options.pingInterval * 1000);
     }
   }
@@ -440,7 +464,7 @@ export class WebSocketRpcHandler extends RpcHandler {
     this.clearTimeout();
 
     // schedule a new ping
-    if (this.options.pingInterval > 0) {
+    if (!this.destroyed && this.options.pingInterval > 0) {
       this.timeout = setTimeout(() => this.sendPing(), this.options.pingInterval * 1000);
     }
   }
