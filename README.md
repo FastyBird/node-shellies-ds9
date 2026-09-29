@@ -114,3 +114,18 @@ discoverer.start();
 ```
 
 See [homebridge-shelly-ng]() for a real-world example.
+
+## Connection lifecycle
+
+`Shellies.delete()` and `Shellies.clear()` remove devices synchronously and start
+closing their RPC connections. Replacing a discovered device also closes the old
+instance's connection. Cleanup failures are reported through the `error` event;
+these methods do not wait for the WebSocket close handshake.
+
+`clear()` also invalidates discovery loads already in progress: when they settle,
+their connection is closed instead of adopting the device. Discoverers should be
+unregistered/stopped separately if no new discoveries should be accepted.
+
+A destroyed WebSocket RPC handler cannot be reused. Late requests fail and manual
+reconnect calls do nothing. Create a new handler/device to establish a new
+connection; ordinary network disconnects still use the configured reconnect policy.

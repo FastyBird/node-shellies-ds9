@@ -48,6 +48,8 @@ class Shellies extends eventemitter3_1.default {
          * Holds IDs of devices that have been discovered but not yet added.
          */
         this.pendingDevices = new Set();
+        /** Invalidates discoveries that were still loading when clear() was called. */
+        this.discoveryGeneration = 0;
         /**
          * Holds IDs of devices that have been discovered but are excluded or whose
          * model designation isn't recognized.
@@ -132,7 +134,7 @@ class Shellies extends eventemitter3_1.default {
         return this.devices.values();
     }
     /**
-     * Removes a device.
+     * Removes a device and starts closing its RPC connection.
      * @param deviceOrId - The device or ID of the device to remove.
      * @returns `true` if a device has been removed; `false` otherwise.
      */
@@ -141,6 +143,7 @@ class Shellies extends eventemitter3_1.default {
         const device = this.devices.get(id);
         if (device !== undefined) {
             this.devices.delete(id);
+            void this.closeDeviceConnection(device);
             // emit a `remove` event
             this.emit('remove', device);
             return true;
@@ -148,14 +151,29 @@ class Shellies extends eventemitter3_1.default {
         return false;
     }
     /**
-     * Removes all devices.
+     * Removes all devices and starts closing their RPC connections.
+     * Discoveries already in flight are discarded when their current load finishes.
      */
     clear() {
-        // emit `remove` events for all devices
-        for (const [, device] of this.devices) {
+        this.discoveryGeneration++;
+        const devices = Array.from(this.devices.values());
+        this.devices.clear();
+        // Start every cleanup before notifying consumers, even if a listener throws.
+        for (const device of devices) {
+            void this.closeDeviceConnection(device);
+        }
+        for (const device of devices) {
             this.emit('remove', device);
         }
-        this.devices.clear();
+    }
+    async closeDeviceConnection(device) {
+        try {
+            await device.rpcHandler.destroy();
+        }
+        catch (e) {
+            const message = e instanceof Error ? e.message : String(e);
+            this.emit('error', device.id, new Error(`Failed to close removed device connection (id: ${device.id}): ${message}`));
+        }
     }
     /**
      * Registers a device discoverer, making discovered devices be added to this library.
@@ -219,6 +237,7 @@ class Shellies extends eventemitter3_1.default {
             return;
         }
         this.pendingDevices.add(deviceId);
+        const generation = this.discoveryGeneration;
         let rpcHandler;
         try {
             // create an RPC handler
@@ -234,6 +253,11 @@ class Shellies extends eventemitter3_1.default {
                 else {
                     throw new Error(`Unexpected device ID (returned: ${info.id}, expected: ${deviceId})`);
                 }
+            }
+            // Always use the actual ID, including when only its casing differs.
+            deviceId = info.id;
+            if (generation !== this.discoveryGeneration) {
+                return;
             }
             // get the device class for this model
             const cls = devices_1.Device.getClass((_b = info.model) !== null && _b !== void 0 ? _b : '');
@@ -252,6 +276,9 @@ class Shellies extends eventemitter3_1.default {
             if (this.options.autoLoadConfig === true) {
                 // load its config
                 await device.loadConfig();
+            }
+            if (generation !== this.discoveryGeneration) {
+                return;
             }
             if (this.has(deviceId)) {
                 this.delete(deviceId);
