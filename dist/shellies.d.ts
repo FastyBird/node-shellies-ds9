@@ -95,6 +95,8 @@ export declare class Shellies extends EventEmitter<ShelliesEvents> {
     protected readonly pendingDevices: Set<string>;
     /** Invalidates discoveries that were still loading when clear() was called. */
     private discoveryGeneration;
+    /** Verified names belong to an adopted device and its discovery endpoint. */
+    private readonly discoveryIdentities;
     /**
      * Holds IDs of devices that have been discovered but are excluded or whose
      * model designation isn't recognized.
