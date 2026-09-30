@@ -50,6 +50,8 @@ class Shellies extends eventemitter3_1.default {
         this.pendingDevices = new Set();
         /** Invalidates discoveries that were still loading when clear() was called. */
         this.discoveryGeneration = 0;
+        /** Verified names belong to an adopted device and its discovery endpoint. */
+        this.discoveryIdentities = new WeakMap();
         /**
          * Holds IDs of devices that have been discovered but are excluded or whose
          * model designation isn't recognized.
@@ -222,11 +224,23 @@ class Shellies extends eventemitter3_1.default {
      * Handles 'discover' events from device discoverers.
      */
     async handleDiscoveredDevice(identifiers) {
-        var _a, _b, _c;
+        var _a, _b, _c, _d, _e, _f;
         let deviceId = identifiers.deviceId;
-        if (this.devices.has(deviceId) || this.pendingDevices.has(deviceId) || this.ignoredDevices.has(deviceId)) {
+        if (((_a = this.devices.get(deviceId)) === null || _a === void 0 ? void 0 : _a.rpcHandler.connected) || this.pendingDevices.has(deviceId) || this.ignoredDevices.has(deviceId)) {
             // ignore if we've seen this device before
             return;
+        }
+        // Shelly advertises both its ID and friendly name. Once verified, repeated
+        // advertisements at the same endpoint must not open another connection.
+        // Only consult currently owned, connected devices: delete/clear and network
+        // failures must allow discovery again, and names alone are not unique.
+        for (const device of this.devices.values()) {
+            const identity = this.discoveryIdentities.get(device);
+            if (device.rpcHandler.connected && identity && identifiers.hostname &&
+                identity.hostname === identifiers.hostname.toLowerCase() &&
+                identity.names.includes(deviceId.toLowerCase())) {
+                return;
+            }
         }
         // get the configuration options for this device
         const opts = this.getDeviceOptions(deviceId);
@@ -246,7 +260,7 @@ class Shellies extends eventemitter3_1.default {
             const info = await rpcHandler.request('Shelly.GetDeviceInfo');
             // make sure the returned device ID matches
             if (info.id.toLowerCase() !== deviceId.toLowerCase()) {
-                if (((_a = info.name) === null || _a === void 0 ? void 0 : _a.toLowerCase()) === deviceId.toLowerCase()) {
+                if (((_b = info.name) === null || _b === void 0 ? void 0 : _b.toLowerCase()) === deviceId.toLowerCase()) {
                     // Change deviceId to received
                     deviceId = info.id;
                 }
@@ -259,8 +273,13 @@ class Shellies extends eventemitter3_1.default {
             if (generation !== this.discoveryGeneration) {
                 return;
             }
+            // Another advertisement may have adopted this canonical ID while we
+            // loaded its info. Keep the healthy owner and close only our probe.
+            if ((_c = this.devices.get(deviceId)) === null || _c === void 0 ? void 0 : _c.rpcHandler.connected) {
+                return;
+            }
             // get the device class for this model
-            const cls = devices_1.Device.getClass((_b = info.model) !== null && _b !== void 0 ? _b : '');
+            const cls = devices_1.Device.getClass((_d = info.model) !== null && _d !== void 0 ? _d : '');
             if (cls === undefined) {
                 // abort if we don't have a matching device class
                 this.ignoredDevices.add(deviceId);
@@ -280,8 +299,18 @@ class Shellies extends eventemitter3_1.default {
             if (generation !== this.discoveryGeneration) {
                 return;
             }
+            // Status/config loading also yields to concurrent discoveries/reconnects.
+            if ((_e = this.devices.get(deviceId)) === null || _e === void 0 ? void 0 : _e.rpcHandler.connected) {
+                return;
+            }
             if (this.has(deviceId)) {
                 this.delete(deviceId);
+            }
+            if (identifiers.hostname) {
+                this.discoveryIdentities.set(device, {
+                    hostname: identifiers.hostname.toLowerCase(),
+                    names: [info.id.toLowerCase(), ...(info.name ? [info.name.toLowerCase()] : [])],
+                });
             }
             this.add(device);
         }
@@ -303,7 +332,7 @@ class Shellies extends eventemitter3_1.default {
                 // Discovery owns this handler until a device adopts it. Failed or unsupported
                 // discoveries must stop reconnecting and release their socket before retrying.
                 // Check actual ownership because an `add` listener can throw after adoption.
-                if (rpcHandler && ((_c = this.devices.get(deviceId)) === null || _c === void 0 ? void 0 : _c.rpcHandler) !== rpcHandler) {
+                if (rpcHandler && ((_f = this.devices.get(deviceId)) === null || _f === void 0 ? void 0 : _f.rpcHandler) !== rpcHandler) {
                     await rpcHandler.destroy();
                 }
             }

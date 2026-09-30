@@ -1,13 +1,20 @@
 import { AddressInfo } from 'net';
+import { ResponsePacket } from 'multicast-dns';
 import { WebSocketServer } from 'ws';
 
-import { DeviceIdentifiers } from './discovery';
+import { DeviceIdentifiers, MdnsDeviceDiscoverer } from './discovery';
 import { RpcHandler } from './rpc';
 import { Shellies } from './shellies';
 
 class DiscoverableShellies extends Shellies {
   discover(identifiers: DeviceIdentifiers) {
     return this.handleDiscoveredDevice(identifiers);
+  }
+}
+
+class ReplayMdns extends MdnsDeviceDiscoverer {
+  feed(packet: ResponsePacket) {
+    this.handleResponse(packet);
   }
 }
 
@@ -29,6 +36,149 @@ async function withDeadline(promise: Promise<void>): Promise<void> {
 }
 
 describe('discovery RPC ownership', () => {
+  const connectedHandler = (response = { ...info, name: 'Kitchen' }) => ({
+    connected: true,
+    request: jest.fn().mockResolvedValue(response),
+    on: jest.fn().mockReturnThis(),
+    destroy: jest.fn().mockResolvedValue(undefined),
+  });
+
+  test.each(['delete', 'clear'] as const)('forgets verified discovery names after %s', async (operation) => {
+    const shellies = new DiscoverableShellies({ autoLoadStatus: false });
+    const first = connectedHandler();
+    const next = connectedHandler();
+    const create = jest.spyOn(shellies.websocket, 'create')
+      .mockReturnValueOnce(first as unknown as ReturnType<typeof shellies.websocket.create>)
+      .mockReturnValue(next as unknown as ReturnType<typeof shellies.websocket.create>);
+
+    await shellies.discover(identifiers);
+    await shellies.discover({ ...identifiers, deviceId: 'KITCHEN' });
+    await shellies.discover({ ...identifiers, deviceId: info.id.toUpperCase() });
+    expect(create).toHaveBeenCalledTimes(1);
+    if (operation === 'delete') {
+      shellies.delete(info.id);
+    } else {
+      shellies.clear();
+    }
+    await shellies.discover({ ...identifiers, deviceId: 'Kitchen' });
+    expect(create).toHaveBeenCalledTimes(2);
+    expect(shellies.get(info.id)?.rpcHandler).toBe(next);
+  });
+
+  test('does not confuse devices with the same name at different endpoints', async () => {
+    const shellies = new DiscoverableShellies({ autoLoadStatus: false });
+    const first = connectedHandler();
+    const second = connectedHandler({ ...info, id: 'shellypro4pm-other', name: 'Kitchen' });
+    jest.spyOn(shellies.websocket, 'create')
+      .mockReturnValueOnce(first as unknown as ReturnType<typeof shellies.websocket.create>)
+      .mockReturnValue(second as unknown as ReturnType<typeof shellies.websocket.create>);
+
+    await shellies.discover(identifiers);
+    await shellies.discover({ deviceId: 'Kitchen', hostname: '127.0.0.2' });
+    expect(shellies.size).toBe(2);
+    expect(shellies.get('shellypro4pm-other')?.rpcHandler).toBe(second);
+    expect(first.destroy).not.toHaveBeenCalled();
+  });
+
+  test.each([info.id, 'Kitchen'])('recovers a disconnected device through %s at a new address', async (deviceId) => {
+    const shellies = new DiscoverableShellies({ autoLoadStatus: false });
+    const first = connectedHandler();
+    const replacement = connectedHandler();
+    const create = jest.spyOn(shellies.websocket, 'create')
+      .mockReturnValueOnce(first as unknown as ReturnType<typeof shellies.websocket.create>)
+      .mockReturnValue(replacement as unknown as ReturnType<typeof shellies.websocket.create>);
+    await shellies.discover(identifiers);
+    first.connected = false;
+    await shellies.discover({ deviceId, hostname: '127.0.0.2' });
+
+    expect(create).toHaveBeenLastCalledWith('127.0.0.2', expect.any(Object));
+    expect(shellies.get(info.id)?.rpcHandler).toBe(replacement);
+    expect(first.destroy).toHaveBeenCalledTimes(1);
+    expect(replacement.destroy).not.toHaveBeenCalled();
+  });
+
+  test.each(['Shelly.GetStatus', 'Shelly.GetConfig'])(
+    'keeps the canonical owner adopted while another discovery awaits %s', async (pendingMethod) => {
+      const shellies = new DiscoverableShellies({ autoLoadStatus: true, autoLoadConfig: true });
+      const slow = connectedHandler();
+      const winner = connectedHandler();
+      let finish!: (value: unknown) => void;
+      let started!: () => void;
+      const loading = new Promise<void>((resolve) => {
+        started = resolve;
+      });
+      slow.request.mockImplementation((method) => {
+        if (method === pendingMethod) {
+          started();
+          return new Promise((resolve) => {
+            finish = resolve;
+          });
+        }
+        return Promise.resolve(method === 'Shelly.GetDeviceInfo' ? { ...info, name: 'Kitchen' } : {});
+      });
+      jest.spyOn(shellies.websocket, 'create')
+        .mockReturnValueOnce(slow as unknown as ReturnType<typeof shellies.websocket.create>)
+        .mockReturnValue(winner as unknown as ReturnType<typeof shellies.websocket.create>);
+      const removed = jest.fn();
+      shellies.on('remove', removed);
+      const pending = shellies.discover(identifiers);
+      await loading;
+      await shellies.discover({ ...identifiers, deviceId: 'Kitchen' });
+      finish({});
+      await pending;
+
+      expect(shellies.get(info.id)?.rpcHandler).toBe(winner);
+      expect(slow.destroy).toHaveBeenCalledTimes(1);
+      expect(winner.destroy).not.toHaveBeenCalled();
+      expect(removed).not.toHaveBeenCalled();
+    },
+  );
+
+  test('adopts one connection for a dual-name mDNS response and ignores repeated advertisements', async () => {
+    const shellies = new DiscoverableShellies({ autoLoadStatus: false });
+    const discoverer = new ReplayMdns();
+    const handlers: ReturnType<typeof connectedHandler>[] = [];
+    const create = jest.spyOn(shellies.websocket, 'create').mockImplementation(() => {
+      const handler = connectedHandler();
+      handlers.push(handler);
+      return handler as unknown as ReturnType<typeof shellies.websocket.create>;
+    });
+    const pending: Promise<void>[] = [];
+    discoverer.on('discover', (target) => {
+      pending.push(shellies.discover(target));
+    });
+    const packet: ResponsePacket = {
+      type: 'response',
+      id: 0,
+      flags: 0,
+      questions: [],
+      authorities: [],
+      answers: [info.id, 'Kitchen'].map((name) => ({
+        name: '_shelly._tcp.local', type: 'PTR', data: `${name}._shelly._tcp.local`,
+      })),
+      additionals: [info.id, 'Kitchen'].flatMap((name) => [
+        { name: `${name}._shelly._tcp.local`, type: 'TXT' as const, data: [Buffer.from('gen=2')] },
+        { name: `${name}._shelly._tcp.local`, type: 'SRV' as const,
+          data: { target: `${name}.local`, port: 80, priority: 0, weight: 0 } },
+        { name: `${name}.local`, type: 'A' as const, data: identifiers.hostname },
+      ]),
+    };
+    const added = jest.fn();
+    const removed = jest.fn();
+    shellies.on('add', added).on('remove', removed);
+
+    discoverer.feed(packet);
+    await Promise.all(pending);
+    expect(create).toHaveBeenCalledTimes(2);
+    expect(added).toHaveBeenCalledTimes(1);
+    expect(removed).not.toHaveBeenCalled();
+    expect(handlers[0].destroy).not.toHaveBeenCalled();
+    expect(handlers[1].destroy).toHaveBeenCalledTimes(1);
+    discoverer.feed(packet);
+    await Promise.all(pending);
+    expect(create).toHaveBeenCalledTimes(2);
+  });
+
   test.each(['Shelly.GetDeviceInfo', 'Shelly.GetStatus', 'Shelly.GetConfig'])(
     'destroys the handler when %s fails and allows rediscovery',
     async (failedMethod) => {
@@ -206,7 +356,33 @@ describe('discovery RPC ownership', () => {
     },
   );
 
-  test('canonical replacement closes the previous real socket and clear closes the replacement', async () => {
+  test('keeps a connected canonical device when its friendly name is discovered again', async () => {
+    const shellies = new DiscoverableShellies({ autoLoadStatus: false });
+    const handler = () => ({
+      connected: true,
+      request: jest.fn().mockResolvedValue({ ...info, name: 'Kitchen' }),
+      on: jest.fn().mockReturnThis(),
+      destroy: jest.fn().mockResolvedValue(undefined),
+    });
+    const original = handler();
+    const duplicate = handler();
+    const create = jest.spyOn(shellies.websocket, 'create')
+      .mockReturnValueOnce(original as unknown as ReturnType<typeof shellies.websocket.create>)
+      .mockReturnValue(duplicate as unknown as ReturnType<typeof shellies.websocket.create>);
+    const removed = jest.fn();
+    shellies.on('remove', removed);
+
+    await shellies.discover(identifiers);
+    const device = shellies.get(info.id);
+    await shellies.discover({ ...identifiers, deviceId: 'Kitchen' });
+
+    expect(shellies.get(info.id)).toBe(device);
+    expect(original.destroy).not.toHaveBeenCalled();
+    expect(removed).not.toHaveBeenCalled();
+    expect(create).toHaveBeenCalledTimes(1);
+  });
+
+  test('replaces a disconnected real socket and preserves reconnect and clear cleanup', async () => {
     const server = new WebSocketServer({ host: '127.0.0.1', port: 0 });
     await new Promise<void>((resolve) => server.once('listening', resolve));
     server.on('connection', (socket) => socket.on('message', (raw) => {
@@ -215,7 +391,7 @@ describe('discovery RPC ownership', () => {
     }));
     const shellies = new DiscoverableShellies({
       autoLoadStatus: false,
-      websocket: { clientId: 'canonical-cleanup-test', pingInterval: 0, reconnectInterval: 0.02, requestTimeout: 1 },
+      websocket: { clientId: 'canonical-cleanup-test', pingInterval: 0, reconnectInterval: 0, requestTimeout: 1 },
     });
     const handlers: RpcHandler[] = [];
     const create = shellies.websocket.create.bind(shellies.websocket);
@@ -229,15 +405,22 @@ describe('discovery RPC ownership', () => {
     try {
       await shellies.discover(target);
       const first = shellies.get(info.id)!;
-      const oldClosed = new Promise<void>((resolve) => handlers[0].once('disconnect', () => resolve()));
       await shellies.discover({ ...target, deviceId: 'Kitchen' });
-      expect(shellies.get(info.id)).not.toBe(first);
-      // Wait for a close event, bounded so the regression fails without leaking sockets.
+      expect(shellies.get(info.id)).toBe(first);
+      expect(handlers).toHaveLength(1);
+      expect(handlers[0].connected).toBe(true);
+      const oldClosed = new Promise<void>((resolve) => handlers[0].once('disconnect', () => resolve()));
+      for (const socket of server.clients) {
+        socket.terminate();
+      }
       await withDeadline(oldClosed);
+      await shellies.discover(target);
+      expect(shellies.get(info.id)).not.toBe(first);
       expect(handlers[0].connected).toBe(false);
       expect(handlers[1].connected).toBe(true);
 
       // Network recovery must still work for the active replacement.
+      (handlers[1] as ReturnType<typeof shellies.websocket.create>).options.reconnectInterval = 0.02;
       const reconnected = new Promise<void>((resolve) => handlers[1].once('connect', resolve));
       for (const socket of server.clients) {
         socket.terminate();

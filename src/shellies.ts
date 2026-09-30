@@ -129,6 +129,9 @@ export class Shellies extends EventEmitter<ShelliesEvents> {
   /** Invalidates discoveries that were still loading when clear() was called. */
   private discoveryGeneration = 0;
 
+  /** Verified names belong to an adopted device and its discovery endpoint. */
+  private readonly discoveryIdentities = new WeakMap<Device, { hostname: string; names: string[] }>();
+
   /**
    * Holds IDs of devices that have been discovered but are excluded or whose
    * model designation isn't recognized.
@@ -339,9 +342,22 @@ export class Shellies extends EventEmitter<ShelliesEvents> {
   protected async handleDiscoveredDevice(identifiers: DeviceIdentifiers) {
     let deviceId = identifiers.deviceId;
 
-    if (this.devices.has(deviceId) || this.pendingDevices.has(deviceId) || this.ignoredDevices.has(deviceId)) {
+    if (this.devices.get(deviceId)?.rpcHandler.connected || this.pendingDevices.has(deviceId) || this.ignoredDevices.has(deviceId)) {
       // ignore if we've seen this device before
       return;
+    }
+
+    // Shelly advertises both its ID and friendly name. Once verified, repeated
+    // advertisements at the same endpoint must not open another connection.
+    // Only consult currently owned, connected devices: delete/clear and network
+    // failures must allow discovery again, and names alone are not unique.
+    for (const device of this.devices.values()) {
+      const identity = this.discoveryIdentities.get(device);
+      if (device.rpcHandler.connected && identity && identifiers.hostname &&
+        identity.hostname === identifiers.hostname.toLowerCase() &&
+        identity.names.includes(deviceId.toLowerCase())) {
+        return;
+      }
     }
 
     // get the configuration options for this device
@@ -383,6 +399,12 @@ export class Shellies extends EventEmitter<ShelliesEvents> {
         return;
       }
 
+      // Another advertisement may have adopted this canonical ID while we
+      // loaded its info. Keep the healthy owner and close only our probe.
+      if (this.devices.get(deviceId)?.rpcHandler.connected) {
+        return;
+      }
+
       // get the device class for this model
       const cls = Device.getClass(info.model ?? '');
 
@@ -409,10 +431,21 @@ export class Shellies extends EventEmitter<ShelliesEvents> {
         return;
       }
 
+      // Status/config loading also yields to concurrent discoveries/reconnects.
+      if (this.devices.get(deviceId)?.rpcHandler.connected) {
+        return;
+      }
+
       if (this.has(deviceId)) {
         this.delete(deviceId);
       }
 
+      if (identifiers.hostname) {
+        this.discoveryIdentities.set(device, {
+          hostname: identifiers.hostname.toLowerCase(),
+          names: [info.id.toLowerCase(), ...(info.name ? [info.name.toLowerCase()] : [])],
+        });
+      }
       this.add(device);
     } catch (e) {
       // create a custom Error
